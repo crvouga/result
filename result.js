@@ -624,6 +624,173 @@ export const isNotAsked = (value) => {
 };
 
 /**
+ * Type guard to check if a value is a valid Result type with optional value and error validators.
+ * This is useful for parsing unknown data like HTTP response bodies.
+ *
+ * @template T
+ * @template E
+ * @param {unknown} value - The value to check
+ * @param {(value: unknown) => value is T} [valueValidator] - Optional validator for the success value
+ * @param {(error: unknown) => error is E} [errorValidator] - Optional validator for the error value
+ * @returns {value is Result<T, E>} True if the value is a valid Result type
+ *
+ * @example
+ * // Basic Result type checking
+ * const unknownData = { type: "ok", value: 42 };
+ * if (isResult(unknownData)) {
+ *   console.log(unknownData.value); // 42
+ * }
+ *
+ * @example
+ * // With value validation
+ * const isNumber = (value) => typeof value === 'number';
+ * const unknownData = { type: "ok", value: "not a number" };
+ *
+ * if (isResult(unknownData, isNumber)) {
+ *   console.log(unknownData.value); // TypeScript knows this is a number
+ * } else {
+ *   console.log("Not a valid number result");
+ * }
+ *
+ * @example
+ * // With error validation
+ * const isString = (value) => typeof value === 'string';
+ * const isErrorObject = (error) =>
+ *   typeof error === 'object' && error !== null && 'message' in error;
+ *
+ * const unknownData = { type: "err", error: { message: "Something went wrong" } };
+ *
+ * if (isResult(unknownData, isString, isErrorObject)) {
+ *   console.log(unknownData.error.message); // TypeScript knows this is an error object
+ * }
+ *
+ * @example
+ * // Parsing HTTP response
+ * const parseUserResponse = (response) => {
+ *   const isUser = (data) =>
+ *     typeof data === 'object' &&
+ *     data !== null &&
+ *     'id' in data &&
+ *     'name' in data;
+ *
+ *   if (isResult(response, isUser)) {
+ *     return response; // Type-safe Result<User, unknown>
+ *   }
+ *
+ *   return Err("Invalid response format");
+ * };
+ *
+ * @example
+ * // Validating API responses
+ * const validateApiResponse = (data) => {
+ *   const isUser = (value) =>
+ *     typeof value === 'object' &&
+ *     value !== null &&
+ *     typeof value.id === 'number' &&
+ *     typeof value.name === 'string';
+ *
+ *   const isApiError = (error) =>
+ *     typeof error === 'object' &&
+ *     error !== null &&
+ *     typeof error.code === 'string' &&
+ *     typeof error.message === 'string';
+ *
+ *   return isResult(data, isUser, isApiError);
+ * };
+ *
+ * @example
+ * // Type-safe parsing with fallback
+ * const parseResult = (unknownData) => {
+ *   if (isResult(unknownData)) {
+ *     if (isOk(unknownData)) {
+ *       // Validate the value if needed
+ *       if (typeof unknownData.value === 'string') {
+ *         return Ok(unknownData.value);
+ *       }
+ *       return Err("Invalid value type");
+ *     }
+ *     return unknownData; // Already an error result
+ *   }
+ *
+ *   return Err("Not a result type");
+ * };
+ */
+export const isResult = (value, valueValidator, errorValidator) => {
+  if (!isOk(value) && !isErr(value)) {
+    return false;
+  }
+
+  if (isOk(value) && valueValidator) {
+    return valueValidator(value.value);
+  }
+
+  if (isErr(value) && errorValidator) {
+    return errorValidator(value.error);
+  }
+
+  return true;
+};
+
+/**
+ * Type guard to check if a value is a valid RemoteResult type with optional value and error validators.
+ * This includes Loading and NotAsked states in addition to Ok and Err.
+ *
+ * @template T
+ * @template E
+ * @param {unknown} value - The value to check
+ * @param {(value: unknown) => value is T} [valueValidator] - Optional validator for the success value
+ * @param {(error: unknown) => error is E} [errorValidator] - Optional validator for the error value
+ * @returns {value is RemoteResult<T, E>} True if the value is a valid RemoteResult type
+ *
+ * @example
+ * // Basic RemoteResult type checking
+ * const unknownData = { type: "loading" };
+ * if (isRemoteResult(unknownData)) {
+ *   console.log("Valid remote result");
+ * }
+ *
+ * @example
+ * // With validation for all states
+ * const isUser = (value) =>
+ *   typeof value === 'object' &&
+ *   value !== null &&
+ *   'id' in value &&
+ *   'name' in value;
+ *
+ * const isApiError = (error) =>
+ *   typeof error === 'object' &&
+ *   error !== null &&
+ *   'code' in error;
+ *
+ * const unknownData = { type: "ok", value: { id: 1, name: "John" } };
+ * if (isRemoteResult(unknownData, isUser, isApiError)) {
+ *   console.log(unknownData.value.name); // TypeScript knows this is a User
+ * }
+ *
+ * @example
+ * // Parsing API responses with loading states
+ * const parseApiResponse = (response) => {
+ *   const isUserData = (data) =>
+ *     typeof data === 'object' &&
+ *     data !== null &&
+ *     typeof data.id === 'number';
+ *
+ *   if (isRemoteResult(response, isUserData)) {
+ *     return response; // Type-safe RemoteResult<User, unknown>
+ *   }
+ *
+ *   return NotAsked();
+ * };
+ */
+export const isRemoteResult = (value, valueValidator, errorValidator) => {
+  if (isLoading(value) || isNotAsked(value)) {
+    return true;
+  }
+
+  return isResult(value, valueValidator, errorValidator);
+};
+
+/**
  * Collection of all Result utilities for convenient importing.
  *
  * @example
@@ -659,4 +826,6 @@ export const Result = {
   flatMapErr,
   tryCatchSync,
   tryCatch,
+  isResult,
+  isRemoteResult,
 };
