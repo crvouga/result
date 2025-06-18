@@ -4,6 +4,7 @@
  * @template T
  * @typedef {{ type: "ok", value: T }} Ok
  */
+export type Ok<T> = { type: 'ok'; value: T };
 
 /**
  * Creates a successful result with a value.
@@ -22,12 +23,14 @@
  *   console.log(userResult.value.name); // "John"
  * }
  */
-export const Ok = (value) => ({ type: 'ok', value });
+export const Ok = <T>(value: T): Ok<T> => ({ type: 'ok', value });
 
 /**
  * @template E
  * @typedef {{ type: "err", error: E }} Err
  */
+
+export type Err<E> = { type: 'err'; error: E };
 
 /**
  * Creates an error result with an error value.
@@ -46,11 +49,13 @@ export const Ok = (value) => ({ type: 'ok', value });
  *   console.log(validationError.error.message); // "Invalid email"
  * }
  */
-export const Err = (error) => ({ type: 'err', error });
+export const Err = <E>(error: E): Err<E> => ({ type: 'err', error });
 
 /**
  * @typedef {{ type: "loading" }} Loading
  */
+
+export type Loading = { type: 'loading' };
 
 /**
  * Creates a loading state result.
@@ -68,11 +73,13 @@ export const Err = (error) => ({ type: 'err', error });
  *   return <Spinner />;
  * }
  */
-export const Loading = () => ({ type: 'loading' });
+export const Loading = (): Loading => ({ type: 'loading' });
 
 /**
  * @typedef {{ type: "not-asked" }} NotAsked
  */
+
+export type NotAsked = { type: 'not-asked' };
 
 /**
  * Creates a not-asked state result.
@@ -90,7 +97,7 @@ export const Loading = () => ({ type: 'loading' });
  *   return <button onClick={fetchUser}>Load User</button>;
  * }
  */
-export const NotAsked = () => ({ type: 'not-asked' });
+export const NotAsked = (): NotAsked => ({ type: 'not-asked' });
 
 /**
  * @template T
@@ -98,11 +105,15 @@ export const NotAsked = () => ({ type: 'not-asked' });
  * @typedef { Ok<T> | Err<E> } Result
  */
 
+export type Result<T, E> = Ok<T> | Err<E>;
+
 /**
  * @template T
  * @template E
  * @typedef { Result<T, E> | Loading | NotAsked } RemoteResult
  */
+
+export type RemoteResult<T, E> = Result<T, E> | Loading | NotAsked;
 
 /**
  * Maps a function over the value of a successful result.
@@ -130,7 +141,10 @@ export const NotAsked = () => ({ type: 'not-asked' });
  * const nameResult = mapOk(userResult, user => user.name);
  * console.log(nameResult); // { type: "ok", value: "John" }
  */
-export const mapOk = (result, mapper) => {
+export const mapOk = <T, E, U>(
+  result: Result<T, E>,
+  mapper: (value: T) => U
+): Result<U, E> => {
   if (isOk(result)) {
     return Ok(mapper(result.value));
   }
@@ -170,7 +184,10 @@ export const mapOk = (result, mapper) => {
  *   |> (r) => flatMapOk(r, u => u.age >= 18 ? Ok(u) : Err("Too young"))
  *   |> (r) => flatMapOk(r, u => u.email ? Ok(u) : Err("Email required"));
  */
-export const flatMapOk = (result, mapper) => {
+export const flatMapOk = <T, E, U>(
+  result: Result<T, E>,
+  mapper: (value: T) => Result<U, E>
+): Result<U, E> => {
   if (isOk(result)) {
     return mapper(result.value);
   }
@@ -205,7 +222,10 @@ export const flatMapOk = (result, mapper) => {
  * );
  * console.log(userFriendly); // { type: "err", error: "Please fix the email: Invalid" }
  */
-export const mapErr = (result, mapper) => {
+export const mapErr = <T, E, U>(
+  result: Result<T, E>,
+  mapper: (error: E) => U
+): Result<T, U> => {
   if (isErr(result)) {
     return Err(mapper(result.error));
   }
@@ -247,7 +267,10 @@ export const mapErr = (result, mapper) => {
  *     return Err(error);
  *   });
  */
-export const flatMapErr = (result, mapper) => {
+export const flatMapErr = <T, E, U>(
+  result: Result<T, E>,
+  mapper: (error: E) => Result<T, U>
+): Result<T, U> => {
   if (isErr(result)) {
     return mapper(result.error);
   }
@@ -303,7 +326,7 @@ export const flatMapErr = (result, mapper) => {
  *     data.id ? Ok(data) : Err("Missing ID")
  *   );
  */
-export const tryCatchSync = (fn) => {
+export const tryCatchSync = <T>(fn: () => T): Result<T, unknown> => {
   try {
     const result = fn();
     return Ok(result);
@@ -397,7 +420,9 @@ export const tryCatchSync = (fn) => {
  *   });
  * };
  */
-export const tryCatch = async (fn) => {
+export const tryCatch = async <T>(
+  fn: () => Promise<T>
+): Promise<Result<T, unknown>> => {
   try {
     const result = await fn();
     return Ok(result);
@@ -434,7 +459,7 @@ export const tryCatch = async (fn) => {
  * const value = unwrapOr(result, "default value");
  * console.log(value); // "default value"
  */
-export const unwrap = (result) => {
+export const unwrap = <T>(result: Result<T, unknown>): T => {
   if (isOk(result)) {
     return result.value;
   }
@@ -470,7 +495,10 @@ export const unwrap = (result) => {
  * const value = unwrapOr(loadingResult, "loading...");
  * console.log(value); // "loading..."
  */
-export const unwrapOr = (result, defaultValue) => {
+export const unwrapOr = <T>(
+  result: Result<T, unknown> | RemoteResult<T, unknown>,
+  defaultValue: T
+): T => {
   if (isOk(result)) {
     return result.value;
   }
@@ -506,7 +534,10 @@ export const unwrapOr = (result, defaultValue) => {
  * console.log(isOk({})); // false
  * console.log(isOk({ type: "loading" })); // false
  */
-export const isOk = (value, validator) => {
+export const isOk = <T>(
+  value: unknown,
+  validator?: (value: unknown) => value is T
+): value is Ok<T> => {
   return (
     typeof value === 'object' &&
     value !== null &&
@@ -546,7 +577,10 @@ export const isOk = (value, validator) => {
  * console.log(isErr({})); // false
  * console.log(isErr({ type: "loading" })); // false
  */
-export const isErr = (value, validator) => {
+export const isErr = <E>(
+  value: unknown,
+  validator?: (value: unknown) => value is E
+): value is Err<E> => {
   return (
     typeof value === 'object' &&
     value !== null &&
@@ -584,7 +618,7 @@ export const isErr = (value, validator) => {
  * console.log(isLoading({})); // false
  * console.log(isLoading({ type: "ok", value: 42 })); // false
  */
-export const isLoading = (value) => {
+export const isLoading = (value: unknown): value is Loading => {
   return (
     typeof value === 'object' &&
     value !== null &&
@@ -620,7 +654,7 @@ export const isLoading = (value) => {
  * console.log(isNotAsked({})); // false
  * console.log(isNotAsked({ type: "loading" })); // false
  */
-export const isNotAsked = (value) => {
+export const isNotAsked = (value: unknown): value is NotAsked => {
   return (
     typeof value === 'object' &&
     value !== null &&
@@ -721,7 +755,11 @@ export const isNotAsked = (value) => {
  *   return Err("Not a result type");
  * };
  */
-export const isResult = (value, valueValidator, errorValidator) => {
+export const isResult = <T, E>(
+  value: unknown,
+  valueValidator?: (value: unknown) => value is T,
+  errorValidator?: (error: unknown) => error is E
+): value is Result<T, E> => {
   if (!isOk(value) && !isErr(value)) {
     return false;
   }
@@ -788,7 +826,11 @@ export const isResult = (value, valueValidator, errorValidator) => {
  *   return NotAsked();
  * };
  */
-export const isRemoteResult = (value, valueValidator, errorValidator) => {
+export const isRemoteResult = <T, E>(
+  value: unknown,
+  valueValidator?: (value: unknown) => value is T,
+  errorValidator?: (error: unknown) => error is E
+): value is RemoteResult<T, E> => {
   if (isLoading(value) || isNotAsked(value)) {
     return true;
   }
@@ -839,7 +881,15 @@ export const isRemoteResult = (value, valueValidator, errorValidator) => {
  *   notAsked: () => 'idle'
  * });
  */
-export const match = (result, matchers) => {
+export const match = <T, E, R>(
+  result: RemoteResult<T, E>,
+  matchers: {
+    ok: (value: T) => R;
+    err: (error: E) => R;
+    loading: () => R;
+    notAsked: () => R;
+  }
+): R => {
   if (isOk(result)) {
     return matchers.ok(result.value);
   }
@@ -894,7 +944,11 @@ export const match = (result, matchers) => {
  *   }
  * );
  */
-export const fold = (result, onOk, onErr) => {
+export const fold = <T, E, R>(
+  result: Result<T, E>,
+  onOk: (value: T) => R,
+  onErr: (error: E) => R
+): R => {
   if (isOk(result)) {
     return onOk(result.value);
   }
@@ -931,7 +985,10 @@ export const fold = (result, onOk, onErr) => {
  * const email = document.getElementById('email').value;
  * const emailResult = fromNullable(email, 'Email is required');
  */
-export const fromNullable = (value, error) => {
+export const fromNullable = <T, E>(
+  value: T | null | undefined,
+  error: E
+): Result<T, E> => {
   return value != null ? Ok(value) : Err(error);
 };
 
@@ -953,7 +1010,10 @@ export const fromNullable = (value, error) => {
  * const user = { name: 'John' };
  * const emailResult = fromUndefined(user.email, 'Email not provided');
  */
-export const fromUndefined = (value, error) => {
+export const fromUndefined = <T, E>(
+  value: T | undefined,
+  error: E
+): Result<T, E> => {
   return value !== undefined ? Ok(value) : Err(error);
 };
 
@@ -987,7 +1047,7 @@ export const fromUndefined = (value, error) => {
  *   return toPromise(result);
  * };
  */
-export const toPromise = (result) => {
+export const toPromise = <T, E>(result: Result<T, E>): Promise<T> => {
   if (isOk(result)) {
     return Promise.resolve(result.value);
   }
@@ -1021,7 +1081,10 @@ export const toPromise = (result) => {
  * const userResult = Err('User not found');
  * const user = getOrElse(userResult, { id: 0, name: 'Guest', email: 'guest@example.com' });
  */
-export const getOrElse = (result, defaultValue) => {
+export const getOrElse = <T>(
+  result: RemoteResult<T, unknown>,
+  defaultValue: T
+): T => {
   return unwrapOr(result, defaultValue);
 };
 
@@ -1061,7 +1124,11 @@ export const getOrElse = (result, defaultValue) => {
  *   error => new Error(error)
  * );
  */
-export const bimap = (result, okMapper, errMapper) => {
+export const bimap = <T, E, U, F>(
+  result: Result<T, E>,
+  okMapper: (value: T) => U,
+  errMapper: (error: E) => F
+): Result<U, F> => {
   if (isOk(result)) {
     return Ok(okMapper(result.value));
   }
@@ -1105,7 +1172,7 @@ export const bimap = (result, okMapper, errMapper) => {
  * const result = validateUser({ name: 'John' });
  * const inverted = swap(result); // Ok('Email required')
  */
-export const swap = (result) => {
+export const swap = <T, E>(result: RemoteResult<T, E>): RemoteResult<E, T> => {
   if (isOk(result)) {
     return Err(result.value);
   }
@@ -1180,7 +1247,11 @@ export const swap = (result) => {
  * const errorEquals = (a, b) => a.code === b.code && a.message === b.message;
  * console.log(equals(a, b, errorEquals)); // true
  */
-export const equals = (a, b, valueEquals) => {
+export const equals = <T, E>(
+  a: unknown,
+  b: unknown,
+  valueEquals?: (a: unknown, b: unknown) => boolean
+): boolean => {
   // Type guards to ensure both parameters are valid RemoteResult types
   if (!isRemoteResult(a) || !isRemoteResult(b)) {
     return false;
@@ -1231,7 +1302,10 @@ export const equals = (a, b, valueEquals) => {
  *   console.log(result.value); // TypeScript knows this is a number
  * }
  */
-export const isRemoteSuccess = (value, validator) => {
+export const isRemoteSuccess = <T>(
+  value: unknown,
+  validator?: (value: unknown) => value is T
+): value is Ok<T> => {
   return isOk(value, validator);
 };
 
@@ -1261,7 +1335,10 @@ export const isRemoteSuccess = (value, validator) => {
  *   console.log(result.error); // TypeScript knows this is a string
  * }
  */
-export const isRemoteFailure = (value, validator) => {
+export const isRemoteFailure = <E>(
+  value: unknown,
+  validator?: (value: unknown) => value is E
+): value is Err<E> => {
   return isErr(value, validator);
 };
 
@@ -1296,7 +1373,10 @@ export const isRemoteFailure = (value, validator) => {
  * const nameResult = mapRemote(userResult, user => user.name);
  * console.log(nameResult); // { type: "ok", value: "John" }
  */
-export const mapRemote = (result, mapper) => {
+export const mapRemote = <T, E, U>(
+  result: RemoteResult<T, E>,
+  mapper: (value: T) => U
+): RemoteResult<U, E> => {
   if (isOk(result)) {
     return Ok(mapper(result.value));
   }
@@ -1346,7 +1426,15 @@ export const mapRemote = (result, mapper) => {
  *   notAsked: () => 'idle'
  * });
  */
-export const foldRemote = (result, matchers) => {
+export const foldRemote = <T, E, R>(
+  result: RemoteResult<T, E>,
+  matchers: {
+    success: (value: T) => R;
+    failure: (error: E) => R;
+    loading: () => R;
+    notAsked: () => R;
+  }
+): R => {
   if (isOk(result)) {
     return matchers.success(result.value);
   }
@@ -1381,7 +1469,10 @@ export const foldRemote = (result, matchers) => {
  * const result3 = fromNullish(undefined, 'Value is nullish');
  * // { type: 'err', error: 'Value is nullish' }
  */
-export const fromNullish = (value, error) => {
+export const fromNullish = <T, E>(
+  value: T | null | undefined,
+  error: E
+): Result<T, E> => {
   return value == null ? Err(error) : Ok(value);
 };
 
@@ -1413,7 +1504,7 @@ export const fromNullish = (value, error) => {
  * const result6 = fromFalsy(undefined, 'Value is falsy');
  * // { type: 'err', error: 'Value is falsy' }
  */
-export const fromFalsy = (value, error) => {
+export const fromFalsy = <T, E>(value: T, error: E): Result<T, E> => {
   return value ? Ok(value) : Err(error);
 };
 

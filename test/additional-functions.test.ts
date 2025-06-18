@@ -20,7 +20,8 @@ import {
   foldRemote,
   fromNullish,
   fromFalsy,
-} from '../result.js';
+  RemoteResult,
+} from '../src/result';
 
 describe('Pattern Matching', () => {
   describe('match', () => {
@@ -71,6 +72,7 @@ describe('Pattern Matching', () => {
     test('throws on invalid result type', () => {
       const invalidResult = { type: 'invalid' };
       assert.throws(() => {
+        // @ts-expect-error
         match(invalidResult, {
           ok: () => 'ok',
           err: () => 'err',
@@ -106,6 +108,7 @@ describe('Pattern Matching', () => {
       const invalidResult = { type: 'invalid' };
       assert.throws(() => {
         fold(
+          // @ts-expect-error
           invalidResult,
           (value) => `Success: ${value}`,
           (error) => `Error: ${error}`
@@ -133,6 +136,7 @@ describe('Pattern Matching', () => {
     test('throws on invalid result type', () => {
       const invalidResult = { type: 'invalid' };
       assert.throws(() => {
+        // @ts-expect-error
         foldRemote(invalidResult, {
           success: () => 'success',
           failure: () => 'error',
@@ -228,6 +232,7 @@ describe('Utility Functions', () => {
     test('throws on Loading', () => {
       const result = Loading();
       assert.throws(
+        // @ts-expect-error
         () => toPromise(result),
         /Cannot convert Loading or NotAsked to Promise/
       );
@@ -236,6 +241,7 @@ describe('Utility Functions', () => {
     test('throws on NotAsked', () => {
       const result = NotAsked();
       assert.throws(
+        // @ts-expect-error
         () => toPromise(result),
         /Cannot convert Loading or NotAsked to Promise/
       );
@@ -351,6 +357,7 @@ describe('Transformation Functions', () => {
       const result = Err('Network error');
       const transformed = bimap(
         result,
+        // @ts-expect-error
         (value) => value.toUpperCase(),
         (error) => `Error: ${error}`
       );
@@ -364,8 +371,9 @@ describe('Transformation Functions', () => {
       const invalidResult = { type: 'invalid' };
       assert.throws(() => {
         bimap(
+          // @ts-expect-error
           invalidResult,
-          (value) => value * 2,
+          (value) => value,
           (error) => `Error: ${error}`
         );
       }, /Invalid result type/);
@@ -410,19 +418,19 @@ describe('Transformation Functions', () => {
 
     test('passes through Loading', () => {
       const result = Loading();
-      const mapped = mapRemote(result, (x) => x * 2);
+      const mapped = mapRemote(result, (x) => x);
       assert.deepStrictEqual(mapped, { type: 'loading' });
     });
 
     test('passes through NotAsked', () => {
       const result = NotAsked();
-      const mapped = mapRemote(result, (x) => x * 2);
+      const mapped = mapRemote(result, (x) => x);
       assert.deepStrictEqual(mapped, { type: 'not-asked' });
     });
 
     test('passes through Err', () => {
       const result = Err('error');
-      const mapped = mapRemote(result, (x) => x * 2);
+      const mapped = mapRemote(result, (x) => x);
       assert.deepStrictEqual(mapped, { type: 'err', error: 'error' });
     });
   });
@@ -598,7 +606,9 @@ describe('RemoteResult Type Guards', () => {
 
 describe('Real-world Usage Examples', () => {
   test('API response handling with pattern matching', () => {
-    const handleApiResponse = (response) => {
+    const handleApiResponse = (
+      response: RemoteResult<{ name: string }, unknown>
+    ) => {
       return match(response, {
         ok: (user) => `Welcome, ${user.name}!`,
         err: (error) => `Error: ${error}`,

@@ -26,11 +26,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Build TypeScript
+        run: npm run build
+
       - name: Run linter
         run: npm run lint
 
       - name: Run tests
         run: npm test
+
+      - name: Run TypeScript tests
+        run: npm run test:ts
 
       - name: Run example
         run: node examples/basic-usage.js

@@ -8,7 +8,7 @@ import {
   isOk,
   isResult,
   isRemoteResult,
-} from '../result.js';
+} from '../src/result';
 
 describe('Type Guards', () => {
   describe('isResult', () => {
@@ -33,8 +33,9 @@ describe('Type Guards', () => {
     });
 
     test('validates with error validator', () => {
-      const isStringError = (error) => typeof error === 'string';
-      const isObjectError = (error) =>
+      const isStringError = (error: unknown): error is string =>
+        typeof error === 'string';
+      const isObjectError = (error: unknown): error is { message: string } =>
         typeof error === 'object' && error !== null && 'message' in error;
 
       assert.strictEqual(
@@ -69,7 +70,7 @@ describe('Type Guards', () => {
     });
 
     test('handles complex object validation', () => {
-      const isUser = (value) =>
+      const isUser = (value: unknown): value is { id: number; name: string } =>
         typeof value === 'object' &&
         value !== null &&
         'id' in value &&
@@ -160,7 +161,7 @@ describe('Type Guards', () => {
 
   describe('Real-world usage examples', () => {
     test('parsing HTTP response', () => {
-      const isUser = (data) =>
+      const isUser = (data: unknown): data is { id: number; name: string } =>
         typeof data === 'object' &&
         data !== null &&
         'id' in data &&
@@ -176,7 +177,9 @@ describe('Type Guards', () => {
     });
 
     test('validating API error responses', () => {
-      const isApiError = (error) =>
+      const isApiError = (
+        error: unknown
+      ): error is { code: string; message: string } =>
         typeof error === 'object' &&
         error !== null &&
         'code' in error &&
@@ -193,8 +196,10 @@ describe('Type Guards', () => {
     });
 
     test('parsing unknown data with fallback', () => {
-      const parseUserResult = (unknownData) => {
-        const isUser = (value) =>
+      const parseUserResult = (unknownData: unknown) => {
+        const isUser = (
+          value: unknown
+        ): value is { id: number; name: string } =>
           typeof value === 'object' &&
           value !== null &&
           'id' in value &&

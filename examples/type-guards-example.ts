@@ -7,7 +7,7 @@ import {
   isResult,
   isRemoteResult,
   tryCatch,
-} from '../result.js';
+} from '../src/result.ts';
 
 console.log('=== Type Guards Example ===\n');
 
@@ -50,8 +50,9 @@ console.log(
 
 // Example 3: Error validation
 console.log('\n3. Error Validation:');
-const isStringError = (error) => typeof error === 'string';
-const isObjectError = (error) =>
+const isStringError = (error: unknown): error is string =>
+  typeof error === 'string';
+const isObjectError = (error: unknown): error is { message: string } =>
   typeof error === 'object' && error !== null && 'message' in error;
 
 const stringError = { type: 'err', error: 'Simple error' };
@@ -75,7 +76,7 @@ console.log(
 
 // Example 4: Complex object validation
 console.log('\n4. Complex Object Validation:');
-const isUser = (value) =>
+const isUser = (value: unknown): value is { id: number; name: string } =>
   typeof value === 'object' &&
   value !== null &&
   'id' in value &&
@@ -100,7 +101,7 @@ console.log(
 // Example 5: API Response Parsing
 console.log('\n5. API Response Parsing:');
 const parseUserResponse = (response) => {
-  const isUser = (data) =>
+  const isUser = (data: unknown): data is { id: number; name: string } =>
     typeof data === 'object' && data !== null && 'id' in data && 'name' in data;
 
   if (isResult(response, isUser)) {
@@ -153,13 +154,15 @@ const handleHttpResponse = async () => {
     const response = mockResponse.value;
 
     // Validate the response structure
-    const isUser = (data) =>
+    const isUser = (data: unknown): data is { id: number; name: string } =>
       typeof data === 'object' &&
       data !== null &&
       'id' in data &&
       'name' in data;
 
-    const isApiError = (error) =>
+    const isApiError = (
+      error: unknown
+    ): error is { code: string; message: string } =>
       typeof error === 'object' &&
       error !== null &&
       'code' in error &&
@@ -184,7 +187,7 @@ const handleHttpResponse = async () => {
     if (isOk(result.value)) {
       console.log('✅ Valid user data:', result.value.value);
     } else {
-      console.log('❌ API error:', result.value.error);
+      console.log('❌ API error:', result.error);
     }
   } else {
     console.log('❌ Network error:', result.error);

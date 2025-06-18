@@ -13,7 +13,7 @@ import {
   tryCatch,
   tryCatchSync,
   unwrapOr,
-} from '../result.js';
+} from '../src/result.ts';
 
 // Basic Result creation and checking
 console.log('=== Basic Usage ===');
@@ -55,6 +55,7 @@ const invalidJsonResult = tryCatchSync(() => {
 });
 
 if (isErr(invalidJsonResult)) {
+  // @ts-expect-error
   console.log('JSON parse error:', invalidJsonResult.error.message);
 }
 
@@ -89,6 +90,7 @@ async function fetchUserData() {
   if (isOk(result)) {
     console.log('User data:', result.value);
   } else {
+    // @ts-expect-error
     console.log('Error fetching user:', result.error.message);
   }
 }

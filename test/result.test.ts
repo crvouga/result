@@ -18,7 +18,7 @@ import {
   tryCatchSync,
   unwrap,
   unwrapOr,
-} from '../result.js';
+} from '../src/result';
 
 describe('Result Creation', () => {
   test('Ok creates a successful result', () => {
@@ -89,6 +89,7 @@ describe('Transformation Functions', () => {
 
   test('mapOk preserves non-Ok results', () => {
     const errorResult = Err('error');
+    // @ts-expect-error
     const mapped = mapOk(errorResult, (x) => x * 2);
     assert.deepStrictEqual(mapped, errorResult);
   });
@@ -103,6 +104,7 @@ describe('Transformation Functions', () => {
 
   test('flatMapOk preserves non-Ok results', () => {
     const errorResult = Err('error');
+    // @ts-expect-error
     const mapped = flatMapOk(errorResult, (x) => Ok(x * 2));
     assert.deepStrictEqual(mapped, errorResult);
   });
@@ -135,6 +137,7 @@ describe('Transformation Functions', () => {
 
   test('flatMapErr preserves non-Err results', () => {
     const successResult = Ok(42);
+    // @ts-expect-error
     const mapped = flatMapErr(successResult, () => Ok('recovered'));
     assert.deepStrictEqual(mapped, successResult);
   });
@@ -195,6 +198,7 @@ describe('Error Handling', () => {
       return Promise.reject(new Error('async error'));
     });
     assert.strictEqual(result.type, 'err');
+    // @ts-expect-error
     assert.strictEqual(result.error.message, 'async error');
   });
 });

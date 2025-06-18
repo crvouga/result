@@ -14,7 +14,7 @@ import {
   mapRemote,
   isRemoteSuccess,
   isRemoteFailure,
-} from '../result.js';
+} from '../src/result.ts';
 
 console.log('=== Utility Functions Examples ===\n');
 
@@ -63,7 +63,7 @@ console.log('\n3. Default values:');
 const results = [Ok(42), Err('Something went wrong'), Loading(), NotAsked()];
 
 results.forEach((result, index) => {
-  const value = getOrElse(result, 'default value');
+  const value = getOrElse(result, 42);
   console.log(`  Result ${index + 1}: ${value}`);
 });
 
@@ -75,13 +75,13 @@ const errorResult = Err('network error');
 const parsedNumber = bimap(
   numberResult,
   (value) => parseInt(value, 10),
-  (error) => new Error(error)
+  (error) => new Error(error as string)
 );
 
 const formattedError = bimap(
   errorResult,
-  (value) => value.toUpperCase(),
-  (error) => `Error: ${error.toUpperCase()}`
+  (value) => (value as string).toUpperCase(),
+  (error) => `Error: ${error as string}`
 );
 
 console.log('  Parsed number:', parsedNumber);

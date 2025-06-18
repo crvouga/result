@@ -7,7 +7,8 @@ import {
   match,
   fold,
   foldRemote,
-} from '../result.js';
+  RemoteResult,
+} from '../src/result.ts';
 
 console.log('=== Pattern Matching Examples ===\n');
 
@@ -26,7 +27,9 @@ results.forEach((result) => {
 });
 
 console.log('\n2. React-like component rendering:');
-const renderUserCard = (userData) => {
+const renderUserCard = (
+  userData: RemoteResult<{ name: string; email: string }, unknown>
+) => {
   return match(userData, {
     ok: (user) => ({
       type: 'div',
@@ -92,7 +95,12 @@ results.forEach((result) => {
 });
 
 console.log('\n5. Complex business logic with pattern matching:');
-const processOrder = (orderResult) => {
+const processOrder = (
+  orderResult: RemoteResult<
+    { id: string; total: number; items: string[] },
+    string
+  >
+) => {
   return match(orderResult, {
     ok: (order) => {
       if (order.total > 100) {
