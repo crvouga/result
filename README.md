@@ -84,23 +84,33 @@ console.log(result); // { type: "not-asked" }
 
 ### Type Guards
 
-#### `isOk(value)`
-Checks if a value is a successful result.
+#### `isOk(value, validator?)`
+Checks if a value is a successful result. Optionally, you can pass a validator function to check the type or shape of the wrapped value.
 
 ```javascript
 const result = Ok(42);
 if (isOk(result)) {
   console.log(result.value); // 42
 }
+
+// With value validation
+if (isOk(result, v => typeof v === 'number')) {
+  // result.value is a number
+}
 ```
 
-#### `isErr(value)`
-Checks if a value is an error result.
+#### `isErr(value, validator?)`
+Checks if a value is an error result. Optionally, you can pass a validator function to check the type or shape of the wrapped error.
 
 ```javascript
 const result = Err("error");
 if (isErr(result)) {
   console.log(result.error); // "error"
+}
+
+// With error validation
+if (isErr(result, e => typeof e === 'string')) {
+  // result.error is a string
 }
 ```
 
