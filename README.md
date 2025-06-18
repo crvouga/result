@@ -15,13 +15,13 @@ A comprehensive Result type library for JavaScript with Ok, Err, Loading, and No
 ## Installation
 
 ```bash
-npm install @result-js/core
+npm install @crvouga/result
 ```
 
 ## Quick Start
 
 ```javascript
-import { Ok, Err, isOk, isErr, mapOk, flatMapOk } from '@result-js/core';
+import { Ok, Err, isOk, isErr, mapOk, flatMapOk } from '@crvouga/result';
 
 // Create results
 const success = Ok(42);
@@ -215,7 +215,7 @@ console.log(value); // "default"
 ### API Calls with Loading States
 
 ```javascript
-import { Loading, NotAsked, Ok, Err, isOk, isErr, isLoading } from '@result-js/core';
+import { Loading, NotAsked, Ok, Err, isOk, isErr, isLoading } from '@crvouga/result';
 
 function UserProfile({ userId }) {
   const [userData, setUserData] = useState(NotAsked());
@@ -247,7 +247,7 @@ function UserProfile({ userId }) {
 ### Form Validation
 
 ```javascript
-import { Ok, Err, flatMapOk, mapErr } from '@result-js/core';
+import { Ok, Err, flatMapOk, mapErr } from '@crvouga/result';
 
 const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -278,7 +278,7 @@ const validateForm = (email, password) => {
 ### Railway-Oriented Programming
 
 ```javascript
-import { Ok, Err, flatMapOk, mapErr } from '@result-js/core';
+import { Ok, Err, flatMapOk, mapErr } from '@crvouga/result';
 
 const processUser = (userInput) => {
   return Ok(userInput)
@@ -301,7 +301,7 @@ const processUser = (userInput) => {
 The library includes comprehensive JSDoc type annotations for TypeScript support:
 
 ```typescript
-import { Ok, Err, Result } from '@result-js/core';
+import { Ok, Err, Result } from '@crvouga/result';
 
 // TypeScript will infer the correct types
 const userResult: Result<User, string> = Ok({ id: 1, name: "John" });
