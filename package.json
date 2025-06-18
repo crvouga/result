@@ -1,0 +1,57 @@
+{
+  "name": "@crvouga/result",
+  "version": "1.0.0",
+  "description": "A comprehensive Result type library for JavaScript with Ok, Err, Loading, and NotAsked states",
+  "main": "result.js",
+  "type": "module",
+  "exports": {
+    ".": "./result.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "result.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "lint": "eslint result.js",
+    "format": "prettier --write result.js",
+    "prepare": "npm run lint && npm run test"
+  },
+  "keywords": [
+    "result",
+    "either",
+    "monad",
+    "functional-programming",
+    "error-handling",
+    "typescript",
+    "javascript",
+    "remote-data",
+    "loading-states",
+    "railway-oriented-programming"
+  ],
+  "author": {
+    "name": "Your Name",
+    "email": "your.email@example.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/result-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/result-js/issues"
+  },
+  "homepage": "https://github.com/yourusername/result-js#readme",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

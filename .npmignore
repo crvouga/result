@@ -1,0 +1,43 @@
+# Development files
+.git/
+.github/
+.vscode/
+.idea/
+
+# Configuration files
+.eslintrc.json
+.prettierrc
+.gitignore
+.npmignore
+
+# Test files
+test/
+tests/
+__tests__/
+*.test.js
+*.spec.js
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Build tools
+rollup.config.js
+webpack.config.js
+babel.config.js
+tsconfig.json
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+
+# Development dependencies
+node_modules/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/ 
