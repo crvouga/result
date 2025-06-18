@@ -17,7 +17,13 @@
     "test": "node --test test/*.test.js",
     "lint": "eslint result.js",
     "format": "prettier --write result.js",
-    "prepare": "npm run lint && npm run test"
+    "prepare": "npm run lint && npm run test",
+    "release:patch": "npm version patch && npm publish && git push && git push --tags",
+    "release:minor": "npm version minor && npm publish && git push && git push --tags",
+    "release:major": "npm version major && npm publish && git push && git push --tags",
+    "release:preview": "npm version prerelease --preid=beta && npm publish --tag beta && git push && git push --tags",
+    "release:dry-run": "npm pack --dry-run",
+    "prepublishOnly": "npm run lint && npm test"
   },
   "keywords": [
     "result",
