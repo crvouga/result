@@ -21,7 +21,7 @@ npm install @crvouga/result
 
 ## Quick Start
 
-```javascript
+```typescript
 import { Ok, Err, Loading, NotAsked, match, mapOk, flatMapOk } from '@crvouga/result';
 
 // Basic usage
@@ -55,7 +55,7 @@ if (isLoading(userData)) {
 
 ### Type Aliases
 
-```javascript
+```typescript
 type Result<T, E> = Ok<T> | Err<E>;
 type RemoteResult<T, E> = Ok<T> | Err<E> | Loading | NotAsked;
 ```
@@ -67,7 +67,7 @@ type RemoteResult<T, E> = Ok<T> | Err<E> | Loading | NotAsked;
 #### `Ok(value)`
 Creates a successful result.
 
-```javascript
+```typescript
 const result = Ok(42);
 console.log(result); // { type: "ok", value: 42 }
 ```
@@ -75,7 +75,7 @@ console.log(result); // { type: "ok", value: 42 }
 #### `Err(error)`
 Creates an error result.
 
-```javascript
+```typescript
 const result = Err('Something went wrong');
 console.log(result); // { type: "err", error: "Something went wrong" }
 ```
@@ -83,7 +83,7 @@ console.log(result); // { type: "err", error: "Something went wrong" }
 #### `Loading()`
 Creates a loading state.
 
-```javascript
+```typescript
 const result = Loading();
 console.log(result); // { type: "loading" }
 ```
@@ -91,7 +91,7 @@ console.log(result); // { type: "loading" }
 #### `NotAsked()`
 Creates a not-asked state.
 
-```javascript
+```typescript
 const result = NotAsked();
 console.log(result); // { type: "not-asked" }
 ```
@@ -101,7 +101,7 @@ console.log(result); // { type: "not-asked" }
 #### `isOk(result, validator?)`
 Checks if a result is successful, with optional value validation.
 
-```javascript
+```typescript
 const result = Ok(42);
 console.log(isOk(result)); // true
 
@@ -114,7 +114,7 @@ console.log(isOk(Ok('hello'), isNumber)); // false
 #### `isErr(result, validator?)`
 Checks if a result is an error, with optional error validation.
 
-```javascript
+```typescript
 const result = Err('Network error');
 console.log(isErr(result)); // true
 
@@ -127,7 +127,7 @@ console.log(isErr(Err(404), isString)); // false
 #### `isLoading(result)`
 Checks if a result is in loading state.
 
-```javascript
+```typescript
 const result = Loading();
 console.log(isLoading(result)); // true
 ```
@@ -135,7 +135,7 @@ console.log(isLoading(result)); // true
 #### `isNotAsked(result)`
 Checks if a result is in not-asked state.
 
-```javascript
+```typescript
 const result = NotAsked();
 console.log(isNotAsked(result)); // true
 ```
@@ -143,7 +143,7 @@ console.log(isNotAsked(result)); // true
 #### `isResult(value, valueValidator?, errorValidator?)`
 Comprehensive type guard for Result types with optional validation.
 
-```javascript
+```typescript
 const result = Ok(42);
 console.log(isResult(result)); // true
 
@@ -156,7 +156,7 @@ console.log(isResult(result, isNumber, isString)); // true
 #### `isRemoteResult(value, valueValidator?, errorValidator?)`
 Type guard for RemoteResult types with optional validation.
 
-```javascript
+```typescript
 const result = Loading();
 console.log(isRemoteResult(result)); // true
 ```
@@ -166,7 +166,7 @@ console.log(isRemoteResult(result)); // true
 #### `match(result, matchers)`
 Pattern matching for all RemoteResult states.
 
-```javascript
+```typescript
 const result = Ok(42);
 const message = match(result, {
   ok: value => `Success: ${value}`,
@@ -180,7 +180,7 @@ console.log(message); // "Success: 42"
 #### `fold(result, onOk, onErr)`
 Pattern matching for basic Result types (Ok/Err only).
 
-```javascript
+```typescript
 const result = Ok(42);
 const message = fold(result, 
   value => `Success: ${value}`,
@@ -192,7 +192,7 @@ console.log(message); // "Success: 42"
 #### `foldRemote(result, matchers)`
 Pattern matching for RemoteResult types with semantic naming.
 
-```javascript
+```typescript
 const result = Ok(42);
 const message = foldRemote(result, {
   success: value => `Success: ${value}`,
@@ -208,7 +208,7 @@ console.log(message); // "Success: 42"
 #### `mapOk(result, mapper)`
 Maps a function over the value of a successful result.
 
-```javascript
+```typescript
 const result = Ok(42);
 const doubled = mapOk(result, x => x * 2);
 console.log(doubled); // { type: "ok", value: 84 }
@@ -217,7 +217,7 @@ console.log(doubled); // { type: "ok", value: 84 }
 #### `mapErr(result, mapper)`
 Maps a function over the error of an error result.
 
-```javascript
+```typescript
 const result = Err('network error');
 const formatted = mapErr(result, error => `Error: ${error.toUpperCase()}`);
 console.log(formatted); // { type: "err", error: "Error: NETWORK ERROR" }
@@ -226,7 +226,7 @@ console.log(formatted); // { type: "err", error: "Error: NETWORK ERROR" }
 #### `flatMapOk(result, mapper)`
 Maps a function that returns a result over a successful result.
 
-```javascript
+```typescript
 const result = Ok(5);
 const processed = flatMapOk(result, x => x > 10 ? Ok(x) : Err('Too small'));
 console.log(processed); // { type: "err", error: "Too small" }
@@ -235,7 +235,7 @@ console.log(processed); // { type: "err", error: "Too small" }
 #### `flatMapErr(result, mapper)`
 Maps a function that returns a result over an error result.
 
-```javascript
+```typescript
 const result = Err('network error');
 const recovered = flatMapErr(result, error => 
   error.includes('network') ? Ok('Using cached data') : Err(error)
@@ -246,7 +246,7 @@ console.log(recovered); // { type: "ok", value: "Using cached data" }
 #### `bimap(result, okMapper, errMapper)`
 Maps both success and error cases in one operation.
 
-```javascript
+```typescript
 const result = Ok(42);
 const transformed = bimap(result,
   value => value * 2,
@@ -258,7 +258,7 @@ console.log(transformed); // { type: "ok", value: 84 }
 #### `mapRemote(result, mapper)`
 Maps over successful RemoteResults, passing through other states unchanged.
 
-```javascript
+```typescript
 const result = Ok({ id: 1, name: 'John' });
 const mapped = mapRemote(result, user => user.name);
 console.log(mapped); // { type: "ok", value: "John" }
@@ -269,7 +269,7 @@ console.log(mapped); // { type: "ok", value: "John" }
 #### `unwrap(result)`
 Extracts the value from a successful result, throws on error.
 
-```javascript
+```typescript
 const result = Ok(42);
 const value = unwrap(result); // 42
 
@@ -280,7 +280,7 @@ unwrap(errorResult); // throws "error"
 #### `unwrapOr(result, defaultValue)`
 Extracts the value from a successful result, or returns a default.
 
-```javascript
+```typescript
 const result = Ok(42);
 const value = unwrapOr(result, 0); // 42
 
@@ -291,7 +291,7 @@ const value = unwrapOr(errorResult, 0); // 0
 #### `getOrElse(result, defaultValue)`
 Alias for `unwrapOr` for consistency with functional libraries.
 
-```javascript
+```typescript
 const result = Ok(42);
 const value = getOrElse(result, 0); // 42
 ```
@@ -299,7 +299,7 @@ const value = getOrElse(result, 0); // 42
 #### `fromNullable(value, error)`
 Creates a Result from a nullable value.
 
-```javascript
+```typescript
 const user = getUserFromCache();
 const result = fromNullable(user, 'User not found in cache');
 // Returns Ok(user) if user is not null/undefined, otherwise Err('User not found in cache')
@@ -308,7 +308,7 @@ const result = fromNullable(user, 'User not found in cache');
 #### `fromUndefined(value, error)`
 Creates a Result from a value that might be undefined.
 
-```javascript
+```typescript
 const config = process.env.API_KEY;
 const result = fromUndefined(config, 'API key not configured');
 // Returns Ok(config) if config is not undefined, otherwise Err('API key not configured')
@@ -317,7 +317,7 @@ const result = fromUndefined(config, 'API key not configured');
 #### `toPromise(result)`
 Converts a Result to a Promise.
 
-```javascript
+```typescript
 const result = Ok(42);
 const promise = toPromise(result);
 const value = await promise; // 42
@@ -334,7 +334,7 @@ try {
 #### `swap(result)`
 Swaps Ok and Err values of a Result.
 
-```javascript
+```typescript
 const result = Ok(42);
 const swapped = swap(result);
 console.log(swapped); // { type: "err", error: 42 }
@@ -347,7 +347,7 @@ console.log(swapped); // { type: "ok", value: "Something went wrong" }
 #### `equals(a, b, valueEquals?)`
 Checks if two Results are equal. Safely handles unknown parameters and supports custom equality functions.
 
-```javascript
+```typescript
 const a = Ok(42);
 const b = Ok(42);
 console.log(equals(a, b)); // true
@@ -378,7 +378,7 @@ console.log(equals(arrA, arrB, arrayEquals)); // true
 #### `fromNullish(value, error)`
 Creates a Result from a value that might be null or undefined. Returns Ok(value) if the value is not null/undefined, otherwise Err(error).
 
-```javascript
+```typescript
 const result = fromNullish('hello', 'Value is nullish');
 // { type: 'ok', value: 'hello' }
 
@@ -392,7 +392,7 @@ const result3 = fromNullish(undefined, 'Value is nullish');
 #### `fromFalsy(value, error)`
 Creates a Result from a value that might be falsy. Returns Ok(value) if the value is truthy, otherwise Err(error).
 
-```javascript
+```typescript
 const result = fromFalsy('hello', 'Value is falsy');
 // { type: 'ok', value: 'hello' }
 
@@ -417,7 +417,7 @@ const result6 = fromFalsy(undefined, 'Value is falsy');
 #### `tryCatchSync(fn)`
 Wraps a synchronous function that might throw.
 
-```javascript
+```typescript
 const result = tryCatchSync(() => {
   const value = JSON.parse('invalid json');
   return value;
@@ -428,7 +428,7 @@ console.log(result); // { type: "err", error: SyntaxError }
 #### `tryCatch(fn)`
 Wraps an asynchronous function that might throw.
 
-```javascript
+```typescript
 const result = await tryCatch(async () => {
   const response = await fetch('/api/data');
   return response.json();
@@ -440,7 +440,7 @@ const result = await tryCatch(async () => {
 #### `isRemoteSuccess(result, validator?)`
 Checks if a value is a successful RemoteResult (Ok only).
 
-```javascript
+```typescript
 const result = Ok(42);
 console.log(isRemoteSuccess(result)); // true
 
@@ -451,7 +451,7 @@ console.log(isRemoteSuccess(loadingResult)); // false
 #### `isRemoteFailure(result, validator?)`
 Checks if a value is a failed RemoteResult (Err only).
 
-```javascript
+```typescript
 const result = Err('error');
 console.log(isRemoteFailure(result)); // true
 
@@ -463,7 +463,7 @@ console.log(isRemoteFailure(successResult)); // false
 
 ### Basic Error Handling
 
-```javascript
+```typescript
 import { Ok, Err, isOk, isErr, unwrapOr } from '@crvouga/result';
 
 function divide(a, b) {
@@ -486,7 +486,7 @@ const value = unwrapOr(result, 0);
 
 ### API Response Handling
 
-```javascript
+```typescript
 import { Ok, Err, Loading, match, fromNullable } from '@crvouga/result';
 
 async function fetchUser(id) {
@@ -517,7 +517,7 @@ const renderUser = (data) => {
 
 ### Form Validation
 
-```javascript
+```typescript
 import { Ok, Err, fromNullable, flatMapOk } from '@crvouga/result';
 
 function validateEmail(email) {
@@ -549,7 +549,7 @@ if (isOk(emailResult) && isOk(ageResult)) {
 
 ### Promise Integration
 
-```javascript
+```typescript
 import { Ok, Err, toPromise, tryCatch } from '@crvouga/result';
 
 // Convert Results to Promises
@@ -580,7 +580,7 @@ if (isOk(data)) {
 
 ### Complex Business Logic
 
-```javascript
+```typescript
 import { Ok, Err, match, bimap, swap } from '@crvouga/result';
 
 function processOrder(order) {
