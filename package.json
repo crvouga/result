@@ -1,6 +1,6 @@
 {
   "name": "@crvouga/result",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A comprehensive Result type library for JavaScript with Ok, Err, Loading, and NotAsked states",
   "main": "result.js",
   "type": "module",
