@@ -797,6 +797,538 @@ export const isRemoteResult = (value, valueValidator, errorValidator) => {
 };
 
 /**
+ * Pattern matching for Result types. Handles all possible states (Ok, Err, Loading, NotAsked).
+ *
+ * @template T
+ * @template E
+ * @template R
+ * @param {RemoteResult<T, E>} result - The result to match against
+ * @param {{
+ *   ok: (value: T) => R,
+ *   err: (error: E) => R,
+ *   loading: () => R,
+ *   notAsked: () => R
+ * }} matchers - Object with handlers for each state
+ * @returns {R} The result of the matching handler
+ *
+ * @example
+ * const result = Ok(42);
+ * const message = match(result, {
+ *   ok: value => `Success: ${value}`,
+ *   err: error => `Error: ${error}`,
+ *   loading: () => 'Loading...',
+ *   notAsked: () => 'Not started'
+ * });
+ * console.log(message); // "Success: 42"
+ *
+ * @example
+ * // In a React component
+ * const renderState = (data) => match(data, {
+ *   ok: user => <UserCard user={user} />,
+ *   err: error => <ErrorMessage error={error} />,
+ *   loading: () => <Spinner />,
+ *   notAsked: () => <button onClick={fetchData}>Load Data</button>
+ * });
+ *
+ * @example
+ * // With different return types
+ * const getStatus = (result) => match(result, {
+ *   ok: () => 'success',
+ *   err: () => 'error',
+ *   loading: () => 'loading',
+ *   notAsked: () => 'idle'
+ * });
+ */
+export const match = (result, matchers) => {
+  if (isOk(result)) {
+    return matchers.ok(result.value);
+  }
+  if (isErr(result)) {
+    return matchers.err(result.error);
+  }
+  if (isLoading(result)) {
+    return matchers.loading();
+  }
+  if (isNotAsked(result)) {
+    return matchers.notAsked();
+  }
+  throw new Error('Invalid result type');
+};
+
+/**
+ * Pattern matching for basic Result types (Ok/Err only).
+ *
+ * @template T
+ * @template E
+ * @template R
+ * @param {Result<T, E>} result - The result to match against
+ * @param {(value: T) => R} onOk - Handler for successful results
+ * @param {(error: E) => R} onErr - Handler for error results
+ * @returns {R} The result of the matching handler
+ *
+ * @example
+ * const result = Ok(42);
+ * const message = fold(result,
+ *   value => `Success: ${value}`,
+ *   error => `Error: ${error}`
+ * );
+ * console.log(message); // "Success: 42"
+ *
+ * @example
+ * // Converting to different types
+ * const toNumber = (result) => fold(result,
+ *   value => value,
+ *   error => 0
+ * );
+ *
+ * @example
+ * // Error handling with logging
+ * const processResult = (result) => fold(result,
+ *   value => {
+ *     console.log('Processing:', value);
+ *     return value * 2;
+ *   },
+ *   error => {
+ *     console.error('Failed:', error);
+ *     return null;
+ *   }
+ * );
+ */
+export const fold = (result, onOk, onErr) => {
+  if (isOk(result)) {
+    return onOk(result.value);
+  }
+  if (isErr(result)) {
+    return onErr(result.error);
+  }
+  throw new Error('Invalid result type');
+};
+
+/**
+ * Creates a Result from a nullable value. Returns Ok(value) if the value is not null/undefined, otherwise Err(error).
+ *
+ * @template T
+ * @template E
+ * @param {T | null | undefined} value - The nullable value
+ * @param {E} error - The error to use if the value is null/undefined
+ * @returns {Result<T, E>} Ok with the value, or Err with the error
+ *
+ * @example
+ * const user = getUserFromCache();
+ * const result = fromNullable(user, 'User not found in cache');
+ * if (isOk(result)) {
+ *   console.log(result.value.name);
+ * }
+ *
+ * @example
+ * // With API responses
+ * const response = await fetch('/api/user/1');
+ * const data = await response.json();
+ * const userResult = fromNullable(data.user, 'User not found');
+ *
+ * @example
+ * // With form validation
+ * const email = document.getElementById('email').value;
+ * const emailResult = fromNullable(email, 'Email is required');
+ */
+export const fromNullable = (value, error) => {
+  return value != null ? Ok(value) : Err(error);
+};
+
+/**
+ * Creates a Result from a value that might be undefined.
+ *
+ * @template T
+ * @template E
+ * @param {T | undefined} value - The value that might be undefined
+ * @param {E} error - The error to use if the value is undefined
+ * @returns {Result<T, E>} Ok with the value, or Err with the error
+ *
+ * @example
+ * const config = process.env.API_KEY;
+ * const apiKeyResult = fromUndefined(config, 'API key not configured');
+ *
+ * @example
+ * // With object properties
+ * const user = { name: 'John' };
+ * const emailResult = fromUndefined(user.email, 'Email not provided');
+ */
+export const fromUndefined = (value, error) => {
+  return value !== undefined ? Ok(value) : Err(error);
+};
+
+/**
+ * Converts a Result to a Promise. Ok values resolve, Err values reject.
+ *
+ * @template T
+ * @template E
+ * @param {Result<T, E>} result - The result to convert
+ * @returns {Promise<T>} A promise that resolves with the value or rejects with the error
+ *
+ * @example
+ * const result = Ok(42);
+ * const promise = toPromise(result);
+ * const value = await promise; // 42
+ *
+ * @example
+ * const errorResult = Err('Something went wrong');
+ * const promise = toPromise(errorResult);
+ * try {
+ *   await promise; // throws 'Something went wrong'
+ * } catch (error) {
+ *   console.log(error); // 'Something went wrong'
+ * }
+ *
+ * @example
+ * // Converting async operations
+ * const fetchUser = async (id) => {
+ *   const response = await fetch(`/api/users/${id}`);
+ *   const result = response.ok ? Ok(await response.json()) : Err('User not found');
+ *   return toPromise(result);
+ * };
+ */
+export const toPromise = (result) => {
+  if (isOk(result)) {
+    return Promise.resolve(result.value);
+  }
+  if (isErr(result)) {
+    return Promise.reject(result.error);
+  }
+  throw new Error('Cannot convert Loading or NotAsked to Promise');
+};
+
+/**
+ * Extracts the value from a successful result, or returns a default value.
+ * Alias for unwrapOr for consistency with other functional libraries.
+ *
+ * @template T
+ * @param {RemoteResult<T, unknown>} result - The result to unwrap
+ * @param {T} defaultValue - The default value to return if the result is not successful
+ * @returns {T} The value from the successful result, or the default value
+ *
+ * @example
+ * const result = Ok(42);
+ * const value = getOrElse(result, 0);
+ * console.log(value); // 42
+ *
+ * @example
+ * const errorResult = Err('Something went wrong');
+ * const value = getOrElse(errorResult, 'default');
+ * console.log(value); // 'default'
+ *
+ * @example
+ * // With complex defaults
+ * const userResult = Err('User not found');
+ * const user = getOrElse(userResult, { id: 0, name: 'Guest', email: 'guest@example.com' });
+ */
+export const getOrElse = (result, defaultValue) => {
+  return unwrapOr(result, defaultValue);
+};
+
+/**
+ * Maps both the success and error cases of a Result in one operation.
+ *
+ * @template T
+ * @template E
+ * @template U
+ * @template F
+ * @param {Result<T, E>} result - The result to map
+ * @param {(value: T) => U} okMapper - Function to transform successful values
+ * @param {(error: E) => F} errMapper - Function to transform errors
+ * @returns {Result<U, F>} A new result with transformed value or error
+ *
+ * @example
+ * const result = Ok(42);
+ * const transformed = bimap(result,
+ *   value => value * 2,
+ *   error => `Error: ${error}`
+ * );
+ * console.log(transformed); // { type: "ok", value: 84 }
+ *
+ * @example
+ * const errorResult = Err('Network error');
+ * const transformed = bimap(errorResult,
+ *   value => value.toUpperCase(),
+ *   error => `Error: ${error}`
+ * );
+ * console.log(transformed); // { type: "err", error: "Error: Network error" }
+ *
+ * @example
+ * // Converting types
+ * const numberResult = Ok('42');
+ * const parsed = bimap(numberResult,
+ *   value => parseInt(value, 10),
+ *   error => new Error(error)
+ * );
+ */
+export const bimap = (result, okMapper, errMapper) => {
+  if (isOk(result)) {
+    return Ok(okMapper(result.value));
+  }
+  if (isErr(result)) {
+    return Err(errMapper(result.error));
+  }
+  throw new Error('Invalid result type');
+};
+
+/**
+ * Swaps the Ok and Err values of a Result. Ok becomes Err, Err becomes Ok.
+ * Loading and NotAsked remain unchanged.
+ *
+ * @template T
+ * @template E
+ * @param {RemoteResult<T, E>} result - The result to swap
+ * @returns {RemoteResult<E, T>} A new result with swapped Ok/Err values
+ *
+ * @example
+ * const result = Ok(42);
+ * const swapped = swap(result);
+ * console.log(swapped); // { type: "err", error: 42 }
+ *
+ * @example
+ * const errorResult = Err('Something went wrong');
+ * const swapped = swap(errorResult);
+ * console.log(swapped); // { type: "ok", value: "Something went wrong" }
+ *
+ * @example
+ * const loadingResult = Loading();
+ * const swapped = swap(loadingResult);
+ * console.log(swapped); // { type: "loading" }
+ *
+ * @example
+ * // Useful for error handling patterns
+ * const validateUser = (user) => {
+ *   if (!user.email) return Err('Email required');
+ *   return Ok(user);
+ * };
+ *
+ * const result = validateUser({ name: 'John' });
+ * const inverted = swap(result); // Ok('Email required')
+ */
+export const swap = (result) => {
+  if (isOk(result)) {
+    return Err(result.value);
+  }
+  if (isErr(result)) {
+    return Ok(result.error);
+  }
+  return result; // Loading and NotAsked remain unchanged
+};
+
+/**
+ * Checks if two Results are equal. For Ok results, compares values. For Err results, compares errors.
+ * Loading and NotAsked are equal if they have the same type.
+ *
+ * @template T
+ * @template E
+ * @param {RemoteResult<T, E>} a - First result to compare
+ * @param {RemoteResult<T, E>} b - Second result to compare
+ * @returns {boolean} True if the results are equal
+ *
+ * @example
+ * const a = Ok(42);
+ * const b = Ok(42);
+ * console.log(equals(a, b)); // true
+ *
+ * @example
+ * const a = Ok(42);
+ * const b = Ok(43);
+ * console.log(equals(a, b)); // false
+ *
+ * @example
+ * const a = Err('error');
+ * const b = Err('error');
+ * console.log(equals(a, b)); // true
+ *
+ * @example
+ * const a = Ok(42);
+ * const b = Err('error');
+ * console.log(equals(a, b)); // false
+ *
+ * @example
+ * const a = Loading();
+ * const b = Loading();
+ * console.log(equals(a, b)); // true
+ *
+ * @example
+ * // With objects
+ * const a = Ok({ id: 1, name: 'John' });
+ * const b = Ok({ id: 1, name: 'John' });
+ * console.log(equals(a, b)); // true (reference equality)
+ */
+export const equals = (a, b) => {
+  if (a.type !== b.type) return false;
+
+  if (isOk(a) && isOk(b)) {
+    return a.value === b.value;
+  }
+
+  if (isErr(a) && isErr(b)) {
+    return a.error === b.error;
+  }
+
+  // Loading and NotAsked are equal if they have the same type
+  return true;
+};
+
+/**
+ * Type guard to check if a value is a successful RemoteResult (Ok only, not Loading/NotAsked/Err).
+ *
+ * @template T
+ * @param {unknown} value - The value to check
+ * @param {(value: unknown) => value is T} [validator] - Optional validator for the value
+ * @returns {value is Ok<T>} True if the value is a successful RemoteResult
+ *
+ * @example
+ * const result = Ok(42);
+ * console.log(isRemoteSuccess(result)); // true
+ *
+ * @example
+ * const loadingResult = Loading();
+ * console.log(isRemoteSuccess(loadingResult)); // false
+ *
+ * @example
+ * const errorResult = Err('error');
+ * console.log(isRemoteSuccess(errorResult)); // false
+ *
+ * @example
+ * // With validation
+ * if (isRemoteSuccess(result, v => typeof v === 'number')) {
+ *   console.log(result.value); // TypeScript knows this is a number
+ * }
+ */
+export const isRemoteSuccess = (value, validator) => {
+  return isOk(value, validator);
+};
+
+/**
+ * Type guard to check if a value is a failed RemoteResult (Err only, not Loading/NotAsked/Ok).
+ *
+ * @template E
+ * @param {unknown} value - The value to check
+ * @param {(error: unknown) => error is E} [validator] - Optional validator for the error
+ * @returns {value is Err<E>} True if the value is a failed RemoteResult
+ *
+ * @example
+ * const result = Err('error');
+ * console.log(isRemoteFailure(result)); // true
+ *
+ * @example
+ * const loadingResult = Loading();
+ * console.log(isRemoteFailure(loadingResult)); // false
+ *
+ * @example
+ * const successResult = Ok(42);
+ * console.log(isRemoteFailure(successResult)); // false
+ *
+ * @example
+ * // With validation
+ * if (isRemoteFailure(result, e => typeof e === 'string')) {
+ *   console.log(result.error); // TypeScript knows this is a string
+ * }
+ */
+export const isRemoteFailure = (value, validator) => {
+  return isErr(value, validator);
+};
+
+/**
+ * Maps a function over the value of a successful RemoteResult, passing through other states unchanged.
+ *
+ * @template T
+ * @template U
+ * @template E
+ * @param {RemoteResult<T, E>} result - The result to map over
+ * @param {(value: T) => U} mapper - Function to transform the value
+ * @returns {RemoteResult<U, E>} A new result with the transformed value, or the original result
+ *
+ * @example
+ * const result = Ok(42);
+ * const doubled = mapRemote(result, x => x * 2);
+ * console.log(doubled); // { type: "ok", value: 84 }
+ *
+ * @example
+ * const loadingResult = Loading();
+ * const mapped = mapRemote(loadingResult, x => x * 2);
+ * console.log(mapped); // { type: "loading" }
+ *
+ * @example
+ * const errorResult = Err('error');
+ * const mapped = mapRemote(errorResult, x => x * 2);
+ * console.log(mapped); // { type: "err", error: "error" }
+ *
+ * @example
+ * // With user objects
+ * const userResult = Ok({ id: 1, name: 'John' });
+ * const nameResult = mapRemote(userResult, user => user.name);
+ * console.log(nameResult); // { type: "ok", value: "John" }
+ */
+export const mapRemote = (result, mapper) => {
+  if (isOk(result)) {
+    return Ok(mapper(result.value));
+  }
+  return result; // Pass through Loading, NotAsked, and Err unchanged
+};
+
+/**
+ * Pattern matching for RemoteResult types with all four states.
+ *
+ * @template T
+ * @template E
+ * @template R
+ * @param {RemoteResult<T, E>} result - The result to match against
+ * @param {{
+ *   success: (value: T) => R,
+ *   failure: (error: E) => R,
+ *   loading: () => R,
+ *   notAsked: () => R
+ * }} matchers - Object with handlers for each state
+ * @returns {R} The result of the matching handler
+ *
+ * @example
+ * const result = Ok(42);
+ * const message = foldRemote(result, {
+ *   success: value => `Success: ${value}`,
+ *   failure: error => `Error: ${error}`,
+ *   loading: () => 'Loading...',
+ *   notAsked: () => 'Not started'
+ * });
+ * console.log(message); // "Success: 42"
+ *
+ * @example
+ * // In a React component
+ * const renderState = (data) => foldRemote(data, {
+ *   success: user => <UserCard user={user} />,
+ *   failure: error => <ErrorMessage error={error} />,
+ *   loading: () => <Spinner />,
+ *   notAsked: () => <button onClick={fetchData}>Load Data</button>
+ * });
+ *
+ * @example
+ * // With different return types
+ * const getStatus = (result) => foldRemote(result, {
+ *   success: () => 'success',
+ *   failure: () => 'error',
+ *   loading: () => 'loading',
+ *   notAsked: () => 'idle'
+ * });
+ */
+export const foldRemote = (result, matchers) => {
+  if (isOk(result)) {
+    return matchers.success(result.value);
+  }
+  if (isErr(result)) {
+    return matchers.failure(result.error);
+  }
+  if (isLoading(result)) {
+    return matchers.loading();
+  }
+  if (isNotAsked(result)) {
+    return matchers.notAsked();
+  }
+  throw new Error('Invalid result type');
+};
+
+/**
  * Collection of all Result utilities for convenient importing.
  *
  * @example
@@ -834,4 +1366,17 @@ export const Result = {
   tryCatch,
   isResult,
   isRemoteResult,
+  match,
+  fold,
+  fromNullable,
+  fromUndefined,
+  toPromise,
+  getOrElse,
+  bimap,
+  swap,
+  equals,
+  isRemoteSuccess,
+  isRemoteFailure,
+  mapRemote,
+  foldRemote,
 };

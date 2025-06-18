@@ -1,16 +1,17 @@
 # Result.js
 
-A comprehensive Result type library for JavaScript with Ok, Err, Loading, and NotAsked states. Inspired by Rust's Result type and functional programming patterns.
+A comprehensive JavaScript library for handling success and error states with support for remote data patterns. Provides type-safe error handling, pattern matching, and functional programming utilities.
 
 ## Features
 
-- **Result Types**: `Ok<T>`, `Err<E>` for success/error handling
-- **Remote Data States**: `Loading` and `NotAsked` for async operations
-- **Functional Utilities**: `mapOk`, `flatMapOk`, `mapErr`, `flatMapErr`
-- **Error Handling**: `tryCatch` and `tryCatchSync` for safe execution
-- **TypeScript Support**: Full JSDoc type annotations
-- **Zero Dependencies**: Lightweight and tree-shakeable
-- **Modern JavaScript**: ES modules with Node.js 16+ support
+- **Type-safe error handling** with `Ok` and `Err` types
+- **Remote data patterns** with `Loading` and `NotAsked` states
+- **Pattern matching** for all result types
+- **Functional utilities** like `map`, `flatMap`, `bimap`, `swap`
+- **Promise integration** with `toPromise`
+- **Nullable value handling** with `fromNullable` and `fromUndefined`
+- **Comprehensive type guards** with optional validation
+- **Equality comparison** and utility functions
 
 ## Installation
 
@@ -21,37 +22,50 @@ npm install @crvouga/result
 ## Quick Start
 
 ```javascript
-import { Ok, Err, isOk, isErr, mapOk, flatMapOk } from '@crvouga/result';
+import { Ok, Err, Loading, NotAsked, match, mapOk, flatMapOk } from '@crvouga/result';
 
-// Create results
-const success = Ok(42);
-const error = Err("Something went wrong");
+// Basic usage
+const result = Ok(42);
+const doubled = mapOk(result, x => x * 2); // Ok(84)
 
-// Check results
-if (isOk(success)) {
-  console.log(success.value); // 42
+// Error handling
+const errorResult = Err('Something went wrong');
+const message = match(errorResult, {
+  ok: value => `Success: ${value}`,
+  err: error => `Error: ${error}`,
+  loading: () => 'Loading...',
+  notAsked: () => 'Not started'
+});
+
+// Remote data patterns
+const userData = Loading();
+if (isLoading(userData)) {
+  console.log('Loading user data...');
 }
+```
 
-if (isErr(error)) {
-  console.log(error.error); // "Something went wrong"
-}
+## Core Types
 
-// Transform results
-const doubled = mapOk(success, x => x * 2);
-console.log(doubled); // { type: "ok", value: 84 }
+### Result Types
 
-// Chain operations
-const validated = flatMapOk(success, x =>
-  x > 0 ? Ok(x * 2) : Err("Number must be positive")
-);
+- `Ok<T>` - Represents a successful result with a value of type `T`
+- `Err<E>` - Represents an error result with an error of type `E`
+- `Loading` - Represents a loading state (for remote data)
+- `NotAsked` - Represents an initial state (for remote data)
+
+### Type Aliases
+
+```javascript
+type Result<T, E> = Ok<T> | Err<E>;
+type RemoteResult<T, E> = Ok<T> | Err<E> | Loading | NotAsked;
 ```
 
 ## API Reference
 
-### Creating Results
+### Constructors
 
 #### `Ok(value)`
-Creates a successful result with a value.
+Creates a successful result.
 
 ```javascript
 const result = Ok(42);
@@ -59,15 +73,15 @@ console.log(result); // { type: "ok", value: 42 }
 ```
 
 #### `Err(error)`
-Creates an error result with an error value.
+Creates an error result.
 
 ```javascript
-const result = Err("Network error");
-console.log(result); // { type: "err", error: "Network error" }
+const result = Err('Something went wrong');
+console.log(result); // { type: "err", error: "Something went wrong" }
 ```
 
 #### `Loading()`
-Creates a loading state result.
+Creates a loading state.
 
 ```javascript
 const result = Loading();
@@ -75,7 +89,7 @@ console.log(result); // { type: "loading" }
 ```
 
 #### `NotAsked()`
-Creates a not-asked state result.
+Creates a not-asked state.
 
 ```javascript
 const result = NotAsked();
@@ -84,54 +98,109 @@ console.log(result); // { type: "not-asked" }
 
 ### Type Guards
 
-#### `isOk(value, validator?)`
-Checks if a value is a successful result. Optionally, you can pass a validator function to check the type or shape of the wrapped value.
+#### `isOk(result, validator?)`
+Checks if a result is successful, with optional value validation.
 
 ```javascript
 const result = Ok(42);
-if (isOk(result)) {
-  console.log(result.value); // 42
-}
+console.log(isOk(result)); // true
 
-// With value validation
-if (isOk(result, v => typeof v === 'number')) {
-  // result.value is a number
-}
+// With validation
+const isNumber = (value) => typeof value === 'number';
+console.log(isOk(result, isNumber)); // true
+console.log(isOk(Ok('hello'), isNumber)); // false
 ```
 
-#### `isErr(value, validator?)`
-Checks if a value is an error result. Optionally, you can pass a validator function to check the type or shape of the wrapped error.
+#### `isErr(result, validator?)`
+Checks if a result is an error, with optional error validation.
 
 ```javascript
-const result = Err("error");
-if (isErr(result)) {
-  console.log(result.error); // "error"
-}
+const result = Err('Network error');
+console.log(isErr(result)); // true
 
-// With error validation
-if (isErr(result, e => typeof e === 'string')) {
-  // result.error is a string
-}
+// With validation
+const isString = (error) => typeof error === 'string';
+console.log(isErr(result, isString)); // true
+console.log(isErr(Err(404), isString)); // false
 ```
 
-#### `isLoading(value)`
-Checks if a value is a loading result.
+#### `isLoading(result)`
+Checks if a result is in loading state.
 
 ```javascript
 const result = Loading();
-if (isLoading(result)) {
-  console.log("Loading...");
-}
+console.log(isLoading(result)); // true
 ```
 
-#### `isNotAsked(value)`
-Checks if a value is a not-asked result.
+#### `isNotAsked(result)`
+Checks if a result is in not-asked state.
 
 ```javascript
 const result = NotAsked();
-if (isNotAsked(result)) {
-  console.log("Not initiated yet");
-}
+console.log(isNotAsked(result)); // true
+```
+
+#### `isResult(value, valueValidator?, errorValidator?)`
+Comprehensive type guard for Result types with optional validation.
+
+```javascript
+const result = Ok(42);
+console.log(isResult(result)); // true
+
+// With validation
+const isNumber = (value) => typeof value === 'number';
+const isString = (error) => typeof error === 'string';
+console.log(isResult(result, isNumber, isString)); // true
+```
+
+#### `isRemoteResult(value, valueValidator?, errorValidator?)`
+Type guard for RemoteResult types with optional validation.
+
+```javascript
+const result = Loading();
+console.log(isRemoteResult(result)); // true
+```
+
+### Pattern Matching
+
+#### `match(result, matchers)`
+Pattern matching for all RemoteResult states.
+
+```javascript
+const result = Ok(42);
+const message = match(result, {
+  ok: value => `Success: ${value}`,
+  err: error => `Error: ${error}`,
+  loading: () => 'Loading...',
+  notAsked: () => 'Not started'
+});
+console.log(message); // "Success: 42"
+```
+
+#### `fold(result, onOk, onErr)`
+Pattern matching for basic Result types (Ok/Err only).
+
+```javascript
+const result = Ok(42);
+const message = fold(result, 
+  value => `Success: ${value}`,
+  error => `Error: ${error}`
+);
+console.log(message); // "Success: 42"
+```
+
+#### `foldRemote(result, matchers)`
+Pattern matching for RemoteResult types with semantic naming.
+
+```javascript
+const result = Ok(42);
+const message = foldRemote(result, {
+  success: value => `Success: ${value}`,
+  failure: error => `Error: ${error}`,
+  loading: () => 'Loading...',
+  notAsked: () => 'Not started'
+});
+console.log(message); // "Success: 42"
 ```
 
 ### Transformation Functions
@@ -140,199 +209,382 @@ if (isNotAsked(result)) {
 Maps a function over the value of a successful result.
 
 ```javascript
-const result = Ok(5);
+const result = Ok(42);
 const doubled = mapOk(result, x => x * 2);
-console.log(doubled); // { type: "ok", value: 10 }
-```
-
-#### `flatMapOk(result, mapper)`
-Chains operations that return Result types.
-
-```javascript
-const result = Ok(5);
-const validated = flatMapOk(result, x =>
-  x > 0 ? Ok(x * 2) : Err("Number must be positive")
-);
-console.log(validated); // { type: "ok", value: 10 }
+console.log(doubled); // { type: "ok", value: 84 }
 ```
 
 #### `mapErr(result, mapper)`
 Maps a function over the error of an error result.
 
 ```javascript
-const result = Err("Network error");
-const mapped = mapErr(result, error => `Error: ${error}`);
-console.log(mapped); // { type: "err", error: "Error: Network error" }
+const result = Err('network error');
+const formatted = mapErr(result, error => `Error: ${error.toUpperCase()}`);
+console.log(formatted); // { type: "err", error: "Error: NETWORK ERROR" }
+```
+
+#### `flatMapOk(result, mapper)`
+Maps a function that returns a result over a successful result.
+
+```javascript
+const result = Ok(5);
+const processed = flatMapOk(result, x => x > 10 ? Ok(x) : Err('Too small'));
+console.log(processed); // { type: "err", error: "Too small" }
 ```
 
 #### `flatMapErr(result, mapper)`
-Chains error recovery operations.
+Maps a function that returns a result over an error result.
 
 ```javascript
-const result = Err("Network error");
-const recovered = flatMapErr(result, error =>
-  error === "Network error" ? Ok("Using cached data") : Err(error)
+const result = Err('network error');
+const recovered = flatMapErr(result, error => 
+  error.includes('network') ? Ok('Using cached data') : Err(error)
 );
 console.log(recovered); // { type: "ok", value: "Using cached data" }
+```
+
+#### `bimap(result, okMapper, errMapper)`
+Maps both success and error cases in one operation.
+
+```javascript
+const result = Ok(42);
+const transformed = bimap(result,
+  value => value * 2,
+  error => `Error: ${error}`
+);
+console.log(transformed); // { type: "ok", value: 84 }
+```
+
+#### `mapRemote(result, mapper)`
+Maps over successful RemoteResults, passing through other states unchanged.
+
+```javascript
+const result = Ok({ id: 1, name: 'John' });
+const mapped = mapRemote(result, user => user.name);
+console.log(mapped); // { type: "ok", value: "John" }
+```
+
+### Utility Functions
+
+#### `unwrap(result)`
+Extracts the value from a successful result, throws on error.
+
+```javascript
+const result = Ok(42);
+const value = unwrap(result); // 42
+
+const errorResult = Err('error');
+unwrap(errorResult); // throws "error"
+```
+
+#### `unwrapOr(result, defaultValue)`
+Extracts the value from a successful result, or returns a default.
+
+```javascript
+const result = Ok(42);
+const value = unwrapOr(result, 0); // 42
+
+const errorResult = Err('error');
+const value = unwrapOr(errorResult, 0); // 0
+```
+
+#### `getOrElse(result, defaultValue)`
+Alias for `unwrapOr` for consistency with functional libraries.
+
+```javascript
+const result = Ok(42);
+const value = getOrElse(result, 0); // 42
+```
+
+#### `fromNullable(value, error)`
+Creates a Result from a nullable value.
+
+```javascript
+const user = getUserFromCache();
+const result = fromNullable(user, 'User not found in cache');
+// Returns Ok(user) if user is not null/undefined, otherwise Err('User not found in cache')
+```
+
+#### `fromUndefined(value, error)`
+Creates a Result from a value that might be undefined.
+
+```javascript
+const config = process.env.API_KEY;
+const result = fromUndefined(config, 'API key not configured');
+// Returns Ok(config) if config is not undefined, otherwise Err('API key not configured')
+```
+
+#### `toPromise(result)`
+Converts a Result to a Promise.
+
+```javascript
+const result = Ok(42);
+const promise = toPromise(result);
+const value = await promise; // 42
+
+const errorResult = Err('Something went wrong');
+const promise = toPromise(errorResult);
+try {
+  await promise; // throws 'Something went wrong'
+} catch (error) {
+  console.log(error); // 'Something went wrong'
+}
+```
+
+#### `swap(result)`
+Swaps Ok and Err values of a Result.
+
+```javascript
+const result = Ok(42);
+const swapped = swap(result);
+console.log(swapped); // { type: "err", error: 42 }
+
+const errorResult = Err('Something went wrong');
+const swapped = swap(errorResult);
+console.log(swapped); // { type: "ok", value: "Something went wrong" }
+```
+
+#### `equals(a, b)`
+Checks if two Results are equal.
+
+```javascript
+const a = Ok(42);
+const b = Ok(42);
+console.log(equals(a, b)); // true
+
+const c = Err('error');
+const d = Err('error');
+console.log(equals(c, d)); // true
 ```
 
 ### Error Handling
 
 #### `tryCatchSync(fn)`
-Executes a function and wraps the result in a Result type.
+Wraps a synchronous function that might throw.
 
 ```javascript
 const result = tryCatchSync(() => {
-  const data = JSON.parse('{"name": "John"}');
-  return data.name;
+  const value = JSON.parse('invalid json');
+  return value;
 });
-console.log(result); // { type: "ok", value: "John" }
+console.log(result); // { type: "err", error: SyntaxError }
 ```
 
 #### `tryCatch(fn)`
-Executes an async function and wraps the result in a Result type.
+Wraps an asynchronous function that might throw.
 
 ```javascript
 const result = await tryCatch(async () => {
-  const response = await fetch('/api/users/1');
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const response = await fetch('/api/data');
   return response.json();
 });
 ```
 
-### Unwrapping
+### RemoteResult Type Guards
 
-#### `unwrap(result)`
-Extracts the value from a successful result (throws if not successful).
+#### `isRemoteSuccess(result, validator?)`
+Checks if a value is a successful RemoteResult (Ok only).
 
 ```javascript
 const result = Ok(42);
-const value = unwrap(result);
-console.log(value); // 42
+console.log(isRemoteSuccess(result)); // true
+
+const loadingResult = Loading();
+console.log(isRemoteSuccess(loadingResult)); // false
 ```
 
-#### `unwrapOr(result, defaultValue)`
-Extracts the value or returns a default.
+#### `isRemoteFailure(result, validator?)`
+Checks if a value is a failed RemoteResult (Err only).
 
 ```javascript
-const result = Err("error");
-const value = unwrapOr(result, "default");
-console.log(value); // "default"
+const result = Err('error');
+console.log(isRemoteFailure(result)); // true
+
+const successResult = Ok(42);
+console.log(isRemoteFailure(successResult)); // false
 ```
 
-## Usage Examples
+## Examples
 
-### API Calls with Loading States
+### Basic Error Handling
 
 ```javascript
-import { Loading, NotAsked, Ok, Err, isOk, isErr, isLoading } from '@crvouga/result';
+import { Ok, Err, isOk, isErr, unwrapOr } from '@crvouga/result';
 
-function UserProfile({ userId }) {
-  const [userData, setUserData] = useState(NotAsked());
-
-  useEffect(() => {
-    setUserData(Loading());
-    
-    fetchUser(userId)
-      .then(user => setUserData(Ok(user)))
-      .catch(error => setUserData(Err(error)));
-  }, [userId]);
-
-  if (isNotAsked(userData)) {
-    return <button onClick={() => setUserData(Loading())}>Load User</button>;
+function divide(a, b) {
+  if (b === 0) {
+    return Err('Division by zero');
   }
-
-  if (isLoading(userData)) {
-    return <Spinner />;
-  }
-
-  if (isErr(userData)) {
-    return <ErrorMessage error={userData.error} />;
-  }
-
-  return <UserCard user={userData.value} />;
+  return Ok(a / b);
 }
+
+const result = divide(10, 2);
+if (isOk(result)) {
+  console.log(`Result: ${result.value}`); // Result: 5
+} else {
+  console.log(`Error: ${result.error}`);
+}
+
+// Or use unwrapOr for default values
+const value = unwrapOr(result, 0);
+```
+
+### API Response Handling
+
+```javascript
+import { Ok, Err, Loading, match, fromNullable } from '@crvouga/result';
+
+async function fetchUser(id) {
+  try {
+    const response = await fetch(`/api/users/${id}`);
+    if (!response.ok) {
+      return Err(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    const data = await response.json();
+    return fromNullable(data.user, 'User not found');
+  } catch (error) {
+    return Err(`Network error: ${error.message}`);
+  }
+}
+
+// In your component
+const userData = Loading(); // Initial state
+
+const renderUser = (data) => {
+  return match(data, {
+    ok: user => <UserCard user={user} />,
+    err: error => <ErrorMessage error={error} />,
+    loading: () => <Spinner />,
+    notAsked: () => <button onClick={fetchUser}>Load User</button>
+  });
+};
 ```
 
 ### Form Validation
 
 ```javascript
-import { Ok, Err, flatMapOk, mapErr } from '@crvouga/result';
+import { Ok, Err, fromNullable, flatMapOk } from '@crvouga/result';
 
-const validateEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email) ? Ok(email) : Err("Invalid email format");
-};
-
-const validatePassword = (password) => {
-  if (password.length < 8) {
-    return Err("Password must be at least 8 characters");
-  }
-  if (!/[A-Z]/.test(password)) {
-    return Err("Password must contain at least one uppercase letter");
-  }
-  return Ok(password);
-};
-
-const validateForm = (email, password) => {
-  return Ok({ email, password })
-    |> (r) => flatMapOk(r, data => 
-      validateEmail(data.email).map(email => ({ ...data, email }))
-    )
-    |> (r) => flatMapOk(r, data => 
-      validatePassword(data.password).map(password => ({ ...data, password }))
+function validateEmail(email) {
+  return fromNullable(email, 'Email is required')
+    |> (r) => flatMapOk(r, email => 
+      email.includes('@') ? Ok(email) : Err('Invalid email format')
     );
-};
+}
+
+function validateAge(age) {
+  return fromNullable(age, 'Age is required')
+    |> (r) => flatMapOk(r, age => 
+      age >= 18 ? Ok(age) : Err('Must be 18 or older')
+    );
+}
+
+const emailResult = validateEmail('john@example.com');
+const ageResult = validateAge(25);
+
+if (isOk(emailResult) && isOk(ageResult)) {
+  console.log('Form is valid');
+} else {
+  console.log('Validation errors:', {
+    email: emailResult.type === 'err' ? emailResult.error : null,
+    age: ageResult.type === 'err' ? ageResult.error : null
+  });
+}
 ```
 
-### Railway-Oriented Programming
+### Promise Integration
 
 ```javascript
-import { Ok, Err, flatMapOk, mapErr } from '@crvouga/result';
+import { Ok, Err, toPromise, tryCatch } from '@crvouga/result';
 
-const processUser = (userInput) => {
-  return Ok(userInput)
-    |> (r) => flatMapOk(r, input => 
-      input.age >= 18 ? Ok(input) : Err("User must be 18 or older")
-    )
-    |> (r) => flatMapOk(r, user => 
-      user.email ? Ok(user) : Err("Email is required")
-    )
-    |> (r) => mapOk(r, user => ({
-      ...user,
-      id: generateId(),
-      createdAt: new Date()
-    }));
+// Convert Results to Promises
+const result = Ok(42);
+const promise = toPromise(result);
+const value = await promise; // 42
+
+// Wrap async operations
+const fetchData = async () => {
+  const result = await tryCatch(async () => {
+    const response = await fetch('/api/data');
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    return response.json();
+  });
+  
+  return result;
 };
+
+const data = await fetchData();
+if (isOk(data)) {
+  console.log('Data:', data.value);
+} else {
+  console.error('Error:', data.error);
+}
 ```
 
-## TypeScript Support
+### Complex Business Logic
 
-The library includes comprehensive JSDoc type annotations for TypeScript support:
+```javascript
+import { Ok, Err, match, bimap, swap } from '@crvouga/result';
 
-```typescript
-import { Ok, Err, Result } from '@crvouga/result';
+function processOrder(order) {
+  // Validate order
+  if (!order.items || order.items.length === 0) {
+    return Err('Order must contain at least one item');
+  }
+  
+  if (order.total <= 0) {
+    return Err('Order total must be positive');
+  }
+  
+  // Apply business rules
+  const processedOrder = {
+    ...order,
+    status: order.total > 100 ? 'premium' : 'standard',
+    discount: order.total > 200 ? 0.1 : 0
+  };
+  
+  return Ok(processedOrder);
+}
 
-// TypeScript will infer the correct types
-const userResult: Result<User, string> = Ok({ id: 1, name: "John" });
-const errorResult: Result<User, string> = Err("User not found");
+const order = { items: ['laptop'], total: 150 };
+const result = processOrder(order);
+
+// Transform the result for display
+const displayResult = bimap(result,
+  order => `Order processed: ${order.status} (${order.discount * 100}% discount)`,
+  error => `Order failed: ${error}`
+);
+
+// Or use pattern matching for complex logic
+const message = match(result, {
+  ok: order => {
+    if (order.status === 'premium') {
+      return `🎉 Premium order confirmed! Total: $${order.total}`;
+    }
+    return `✅ Order confirmed! Total: $${order.total}`;
+  },
+  err: error => {
+    if (error.includes('items')) {
+      return `🛒 ${error}. Please add items to your cart.`;
+    }
+    return `❌ ${error}`;
+  },
+  loading: () => '⏳ Processing your order...',
+  notAsked: () => '🛒 Add items to cart to continue'
+});
 ```
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to this project.
 
 ## License
 
-MIT License - see LICENSE file for details.
+MIT License - see [LICENSE](LICENSE) for details.
 
-## Related Projects
+## Changelog
 
-- [fp-ts](https://github.com/gcanti/fp-ts) - Functional programming in TypeScript
-- [neverthrow](https://github.com/supermacro/neverthrow) - Type-safe error handling
-- [Result](https://github.com/badrap/result) - Rust-like Result type for TypeScript
+See [CHANGELOG.md](CHANGELOG.md) for a list of changes and version history.
 
