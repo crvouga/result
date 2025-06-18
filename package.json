@@ -33,7 +33,8 @@
     "release:preview": "npm version prerelease --preid=beta && npm run build && npm publish --tag beta && git push && git push --tags",
     "release:dry-run": "npm run build && npm pack --dry-run",
     "prepublishOnly": "npm run build && npm run lint && npm test",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "run-examples": "tsx examples/*.ts"
   },
   "keywords": [
     "result",
