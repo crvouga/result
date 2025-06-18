@@ -1121,8 +1121,9 @@ export const swap = (result) => {
  *
  * @template T
  * @template E
- * @param {RemoteResult<T, E>} a - First result to compare
- * @param {RemoteResult<T, E>} b - Second result to compare
+ * @param {unknown} a - First result to compare
+ * @param {unknown} b - Second result to compare
+ * @param {(a: T, b: T) => boolean} [valueEquals] - Optional function to compare values (defaults to ===)
  * @returns {boolean} True if the results are equal
  *
  * @example
@@ -1151,20 +1152,53 @@ export const swap = (result) => {
  * console.log(equals(a, b)); // true
  *
  * @example
- * // With objects
+ * // With custom equality function for objects
  * const a = Ok({ id: 1, name: 'John' });
  * const b = Ok({ id: 1, name: 'John' });
- * console.log(equals(a, b)); // true (reference equality)
+ * console.log(equals(a, b)); // false (reference equality)
+ *
+ * const deepEquals = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+ * console.log(equals(a, b, deepEquals)); // true
+ *
+ * @example
+ * // With custom equality for arrays
+ * const a = Ok([1, 2, 3]);
+ * const b = Ok([1, 2, 3]);
+ * const arrayEquals = (a, b) => a.length === b.length && a.every((x, i) => x === b[i]);
+ * console.log(equals(a, b, arrayEquals)); // true
+ *
+ * @example
+ * // Safe with unknown values
+ * console.log(equals(null, Ok(42))); // false
+ * console.log(equals({}, Ok(42))); // false
+ * console.log(equals(Ok(42), "not a result")); // false
+ *
+ * @example
+ * // With error comparison
+ * const a = Err({ code: 404, message: 'Not found' });
+ * const b = Err({ code: 404, message: 'Not found' });
+ * const errorEquals = (a, b) => a.code === b.code && a.message === b.message;
+ * console.log(equals(a, b, errorEquals)); // true
  */
-export const equals = (a, b) => {
-  if (a.type !== b.type) return false;
-
-  if (isOk(a) && isOk(b)) {
-    return a.value === b.value;
+export const equals = (a, b, valueEquals) => {
+  // Type guards to ensure both parameters are valid RemoteResult types
+  if (!isRemoteResult(a) || !isRemoteResult(b)) {
+    return false;
   }
 
+  // Different types are never equal
+  if (a.type !== b.type) {
+    return false;
+  }
+
+  // For Ok results, compare values
+  if (isOk(a) && isOk(b)) {
+    return valueEquals ? valueEquals(a.value, b.value) : a.value === b.value;
+  }
+
+  // For Err results, compare errors
   if (isErr(a) && isErr(b)) {
-    return a.error === b.error;
+    return valueEquals ? valueEquals(a.error, b.error) : a.error === b.error;
   }
 
   // Loading and NotAsked are equal if they have the same type

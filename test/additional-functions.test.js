@@ -490,6 +490,77 @@ describe('Comparison Functions', () => {
       const b = Ok({ id: 1, name: 'John' });
       assert.strictEqual(equals(a, b), false); // Different references
     });
+
+    test('handles unknown parameters safely', () => {
+      assert.strictEqual(equals(null, Ok(42)), false);
+      assert.strictEqual(equals({}, Ok(42)), false);
+      assert.strictEqual(equals(Ok(42), 'not a result'), false);
+      assert.strictEqual(equals(undefined, Loading()), false);
+      assert.strictEqual(equals(42, NotAsked()), false);
+    });
+
+    test('uses custom equality function for Ok values', () => {
+      const a = Ok({ id: 1, name: 'John' });
+      const b = Ok({ id: 1, name: 'John' });
+
+      // Without custom function - should be false (reference equality)
+      assert.strictEqual(equals(a, b), false);
+
+      // With custom deep equality function
+      const deepEquals = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+      assert.strictEqual(equals(a, b, deepEquals), true);
+    });
+
+    test('uses custom equality function for Err values', () => {
+      const a = Err({ code: 404, message: 'Not found' });
+      const b = Err({ code: 404, message: 'Not found' });
+
+      // Without custom function - should be false (reference equality)
+      assert.strictEqual(equals(a, b), false);
+
+      // With custom equality function
+      const errorEquals = (a, b) =>
+        a.code === b.code && a.message === b.message;
+      assert.strictEqual(equals(a, b, errorEquals), true);
+    });
+
+    test('uses custom equality function for arrays', () => {
+      const a = Ok([1, 2, 3]);
+      const b = Ok([1, 2, 3]);
+
+      // Without custom function - should be false (reference equality)
+      assert.strictEqual(equals(a, b), false);
+
+      // With custom array equality function
+      const arrayEquals = (a, b) =>
+        a.length === b.length && a.every((x, i) => x === b[i]);
+      assert.strictEqual(equals(a, b, arrayEquals), true);
+    });
+
+    test('custom equality function works with primitive values', () => {
+      const a = Ok(42);
+      const b = Ok(42);
+
+      // Should work the same as default behavior
+      const customEquals = (a, b) => a === b;
+      assert.strictEqual(equals(a, b, customEquals), true);
+
+      const c = Ok(43);
+      assert.strictEqual(equals(a, c, customEquals), false);
+    });
+
+    test('custom equality function can implement complex logic', () => {
+      const a = Ok({ id: 1, name: 'John', age: 30 });
+      const b = Ok({ id: 1, name: 'John', age: 31 });
+
+      // Custom function that only compares id and name, ignores age
+      const partialEquals = (a, b) => a.id === b.id && a.name === b.name;
+      assert.strictEqual(equals(a, b, partialEquals), true);
+
+      // Different id should make them unequal
+      const c = Ok({ id: 2, name: 'John', age: 30 });
+      assert.strictEqual(equals(a, c, partialEquals), false);
+    });
   });
 });
 

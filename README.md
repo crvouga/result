@@ -344,8 +344,8 @@ const swapped = swap(errorResult);
 console.log(swapped); // { type: "ok", value: "Something went wrong" }
 ```
 
-#### `equals(a, b)`
-Checks if two Results are equal.
+#### `equals(a, b, valueEquals?)`
+Checks if two Results are equal. Safely handles unknown parameters and supports custom equality functions.
 
 ```javascript
 const a = Ok(42);
@@ -355,6 +355,24 @@ console.log(equals(a, b)); // true
 const c = Err('error');
 const d = Err('error');
 console.log(equals(c, d)); // true
+
+// Safe with unknown values
+console.log(equals(null, Ok(42))); // false
+console.log(equals({}, Ok(42))); // false
+
+// With custom equality function for objects
+const objA = Ok({ id: 1, name: 'John' });
+const objB = Ok({ id: 1, name: 'John' });
+console.log(equals(objA, objB)); // false (reference equality)
+
+const deepEquals = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+console.log(equals(objA, objB, deepEquals)); // true
+
+// With custom equality for arrays
+const arrA = Ok([1, 2, 3]);
+const arrB = Ok([1, 2, 3]);
+const arrayEquals = (a, b) => a.length === b.length && a.every((x, i) => x === b[i]);
+console.log(equals(arrA, arrB, arrayEquals)); // true
 ```
 
 #### `fromNullish(value, error)`
