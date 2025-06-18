@@ -22,7 +22,6 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "test": "tsx --test test/*.test.ts",
-    "test:ts": "tsx --test test/*.test.ts",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "format": "prettier --write src/**/*.ts test/**/*.ts",

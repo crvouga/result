@@ -35,8 +35,5 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Run TypeScript tests
-        run: npm run test:ts
-
       - name: Run example
-        run: node examples/basic-usage.js
+        run: npm run run-examples
