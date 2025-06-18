@@ -1329,6 +1329,61 @@ export const foldRemote = (result, matchers) => {
 };
 
 /**
+ * Creates a Result from a value that might be null or undefined. Returns Ok(value) if the value is not null/undefined, otherwise Err(error).
+ *
+ * @template T
+ * @template E
+ * @param {T | null | undefined} value - The value that might be null or undefined
+ * @param {E} error - The error to use if the value is null or undefined
+ * @returns {Result<T, E>} Ok with the value, or Err with the error
+ *
+ * @example
+ * const result = fromNullish('hello', 'Value is nullish');
+ * // { type: 'ok', value: 'hello' }
+ *
+ * const result2 = fromNullish(null, 'Value is nullish');
+ * // { type: 'err', error: 'Value is nullish' }
+ *
+ * const result3 = fromNullish(undefined, 'Value is nullish');
+ * // { type: 'err', error: 'Value is nullish' }
+ */
+export const fromNullish = (value, error) => {
+  return value == null ? Err(error) : Ok(value);
+};
+
+/**
+ * Creates a Result from a value that might be falsy. Returns Ok(value) if the value is truthy, otherwise Err(error).
+ *
+ * @template T
+ * @template E
+ * @param {T} value - The value that might be falsy
+ * @param {E} error - The error to use if the value is falsy
+ * @returns {Result<T, E>} Ok with the value, or Err with the error
+ *
+ * @example
+ * const result = fromFalsy('hello', 'Value is falsy');
+ * // { type: 'ok', value: 'hello' }
+ *
+ * const result2 = fromFalsy('', 'Value is falsy');
+ * // { type: 'err', error: 'Value is falsy' }
+ *
+ * const result3 = fromFalsy(0, 'Value is falsy');
+ * // { type: 'err', error: 'Value is falsy' }
+ *
+ * const result4 = fromFalsy(false, 'Value is falsy');
+ * // { type: 'err', error: 'Value is falsy' }
+ *
+ * const result5 = fromFalsy(null, 'Value is falsy');
+ * // { type: 'err', error: 'Value is falsy' }
+ *
+ * const result6 = fromFalsy(undefined, 'Value is falsy');
+ * // { type: 'err', error: 'Value is falsy' }
+ */
+export const fromFalsy = (value, error) => {
+  return value ? Ok(value) : Err(error);
+};
+
+/**
  * Collection of all Result utilities for convenient importing.
  *
  * @example
@@ -1379,4 +1434,6 @@ export const Result = {
   isRemoteFailure,
   mapRemote,
   foldRemote,
+  fromNullish,
+  fromFalsy,
 };

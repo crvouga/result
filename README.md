@@ -357,6 +357,43 @@ const d = Err('error');
 console.log(equals(c, d)); // true
 ```
 
+#### `fromNullish(value, error)`
+Creates a Result from a value that might be null or undefined. Returns Ok(value) if the value is not null/undefined, otherwise Err(error).
+
+```javascript
+const result = fromNullish('hello', 'Value is nullish');
+// { type: 'ok', value: 'hello' }
+
+const result2 = fromNullish(null, 'Value is nullish');
+// { type: 'err', error: 'Value is nullish' }
+
+const result3 = fromNullish(undefined, 'Value is nullish');
+// { type: 'err', error: 'Value is nullish' }
+```
+
+#### `fromFalsy(value, error)`
+Creates a Result from a value that might be falsy. Returns Ok(value) if the value is truthy, otherwise Err(error).
+
+```javascript
+const result = fromFalsy('hello', 'Value is falsy');
+// { type: 'ok', value: 'hello' }
+
+const result2 = fromFalsy('', 'Value is falsy');
+// { type: 'err', error: 'Value is falsy' }
+
+const result3 = fromFalsy(0, 'Value is falsy');
+// { type: 'err', error: 'Value is falsy' }
+
+const result4 = fromFalsy(false, 'Value is falsy');
+// { type: 'err', error: 'Value is falsy' }
+
+const result5 = fromFalsy(null, 'Value is falsy');
+// { type: 'err', error: 'Value is falsy' }
+
+const result6 = fromFalsy(undefined, 'Value is falsy');
+// { type: 'err', error: 'Value is falsy' }
+```
+
 ### Error Handling
 
 #### `tryCatchSync(fn)`

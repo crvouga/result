@@ -18,6 +18,8 @@ import {
   isRemoteFailure,
   mapRemote,
   foldRemote,
+  fromNullish,
+  fromFalsy,
 } from '../result.js';
 
 describe('Pattern Matching', () => {
@@ -263,6 +265,72 @@ describe('Utility Functions', () => {
       const result = NotAsked();
       const value = getOrElse(result, 'default');
       assert.strictEqual(value, 'default');
+    });
+  });
+
+  describe('fromNullish', () => {
+    test('returns Ok for non-nullish values', () => {
+      assert.deepStrictEqual(fromNullish('hello', 'err'), {
+        type: 'ok',
+        value: 'hello',
+      });
+      assert.deepStrictEqual(fromNullish(0, 'err'), { type: 'ok', value: 0 });
+      assert.deepStrictEqual(fromNullish('', 'err'), { type: 'ok', value: '' });
+      assert.deepStrictEqual(fromNullish(false, 'err'), {
+        type: 'ok',
+        value: false,
+      });
+      assert.deepStrictEqual(fromNullish([], 'err'), { type: 'ok', value: [] });
+      assert.deepStrictEqual(fromNullish({}, 'err'), { type: 'ok', value: {} });
+    });
+    test('returns Err for null or undefined', () => {
+      assert.deepStrictEqual(fromNullish(null, 'err'), {
+        type: 'err',
+        error: 'err',
+      });
+      assert.deepStrictEqual(fromNullish(undefined, 'err'), {
+        type: 'err',
+        error: 'err',
+      });
+    });
+  });
+
+  describe('fromFalsy', () => {
+    test('returns Ok for truthy values', () => {
+      assert.deepStrictEqual(fromFalsy('hello', 'err'), {
+        type: 'ok',
+        value: 'hello',
+      });
+      assert.deepStrictEqual(fromFalsy(1, 'err'), { type: 'ok', value: 1 });
+      assert.deepStrictEqual(fromFalsy([], 'err'), { type: 'ok', value: [] });
+      assert.deepStrictEqual(fromFalsy({}, 'err'), { type: 'ok', value: {} });
+      assert.deepStrictEqual(fromFalsy([0], 'err'), { type: 'ok', value: [0] });
+    });
+    test('returns Err for falsy values', () => {
+      assert.deepStrictEqual(fromFalsy('', 'err'), {
+        type: 'err',
+        error: 'err',
+      });
+      assert.deepStrictEqual(fromFalsy(0, 'err'), {
+        type: 'err',
+        error: 'err',
+      });
+      assert.deepStrictEqual(fromFalsy(false, 'err'), {
+        type: 'err',
+        error: 'err',
+      });
+      assert.deepStrictEqual(fromFalsy(null, 'err'), {
+        type: 'err',
+        error: 'err',
+      });
+      assert.deepStrictEqual(fromFalsy(undefined, 'err'), {
+        type: 'err',
+        error: 'err',
+      });
+      assert.deepStrictEqual(fromFalsy(NaN, 'err'), {
+        type: 'err',
+        error: 'err',
+      });
     });
   });
 });
