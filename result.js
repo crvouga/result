@@ -482,6 +482,7 @@ export const unwrapOr = (result, defaultValue) => {
  *
  * @template T
  * @param {unknown} value - The value to check
+ * @param {(value: unknown) => value is T} [validator] - Optional validator for the value
  * @returns {value is Ok<T>} True if the value is a successful result
  *
  * @example
@@ -505,12 +506,14 @@ export const unwrapOr = (result, defaultValue) => {
  * console.log(isOk({})); // false
  * console.log(isOk({ type: "loading" })); // false
  */
-export const isOk = (value) => {
+export const isOk = (value, validator) => {
   return (
     typeof value === 'object' &&
     value !== null &&
     'type' in value &&
-    value.type === 'ok'
+    value.type === 'ok' &&
+    'value' in value &&
+    (validator ? validator(value.value) : true)
   );
 };
 
@@ -519,6 +522,7 @@ export const isOk = (value) => {
  *
  * @template E
  * @param {unknown} value - The value to check
+ * @param {(error: unknown) => error is E} [validator] - Optional validator for the error
  * @returns {value is Err<E>} True if the value is an error result
  *
  * @example
@@ -542,12 +546,14 @@ export const isOk = (value) => {
  * console.log(isErr({})); // false
  * console.log(isErr({ type: "loading" })); // false
  */
-export const isErr = (value) => {
+export const isErr = (value, validator) => {
   return (
     typeof value === 'object' &&
     value !== null &&
     'type' in value &&
-    value.type === 'err'
+    value.type === 'err' &&
+    'error' in value &&
+    (validator ? validator(value.error) : true)
   );
 };
 
