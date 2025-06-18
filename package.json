@@ -21,6 +21,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
+    "tc": "tsc --noEmit --watch",
     "test": "tsx --test test/*.test.ts",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",

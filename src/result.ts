@@ -1,3 +1,5 @@
+/* eslint-disable no-redeclare */
+
 // @ts-check
 
 /**
@@ -23,6 +25,7 @@ export type Ok<T> = { type: 'ok'; value: T };
  *   console.log(userResult.value.name); // "John"
  * }
  */
+// eslint-disable-next-line no-redeclare
 export const Ok = <T>(value: T): Ok<T> => ({ type: 'ok', value });
 
 /**
@@ -49,6 +52,7 @@ export type Err<E> = { type: 'err'; error: E };
  *   console.log(validationError.error.message); // "Invalid email"
  * }
  */
+// eslint-disable-next-line no-redeclare
 export const Err = <E>(error: E): Err<E> => ({ type: 'err', error });
 
 /**
@@ -73,6 +77,7 @@ export type Loading = { type: 'loading' };
  *   return <Spinner />;
  * }
  */
+// eslint-disable-next-line no-redeclare
 export const Loading = (): Loading => ({ type: 'loading' });
 
 /**
@@ -97,6 +102,7 @@ export type NotAsked = { type: 'not-asked' };
  *   return <button onClick={fetchUser}>Load User</button>;
  * }
  */
+// eslint-disable-next-line no-redeclare
 export const NotAsked = (): NotAsked => ({ type: 'not-asked' });
 
 /**
@@ -1247,7 +1253,7 @@ export const swap = <T, E>(result: RemoteResult<T, E>): RemoteResult<E, T> => {
  * const errorEquals = (a, b) => a.code === b.code && a.message === b.message;
  * console.log(equals(a, b, errorEquals)); // true
  */
-export const equals = <T, E>(
+export const equals = (
   a: unknown,
   b: unknown,
   valueEquals?: (a: unknown, b: unknown) => boolean
