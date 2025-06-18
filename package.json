@@ -38,12 +38,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yourusername/result-js.git"
+    "url": "git+https://github.com/crvouga/result.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/result-js/issues"
+    "url": "https://github.com/crvouga/result/issues"
   },
-  "homepage": "https://github.com/yourusername/result-js#readme",
+  "homepage": "https://github.com/crvouga/result#readme",
   "engines": {
     "node": ">=16.0.0"
   },

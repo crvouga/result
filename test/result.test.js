@@ -1,23 +1,23 @@
-import { test, describe } from 'node:test';
 import assert from 'node:assert';
+import { describe, test } from 'node:test';
 import {
-  Ok,
   Err,
   Loading,
   NotAsked,
-  isOk,
+  Ok,
+  Result,
+  flatMapErr,
+  flatMapOk,
   isErr,
   isLoading,
   isNotAsked,
-  mapOk,
+  isOk,
   mapErr,
-  flatMapOk,
-  flatMapErr,
+  mapOk,
+  tryCatch,
+  tryCatchSync,
   unwrap,
   unwrapOr,
-  tryCatchSync,
-  tryCatch,
-  Result,
 } from '../result.js';
 
 describe('Result Creation', () => {
@@ -135,7 +135,7 @@ describe('Transformation Functions', () => {
 
   test('flatMapErr preserves non-Err results', () => {
     const successResult = Ok(42);
-    const mapped = flatMapErr(successResult, (error) => Ok('recovered'));
+    const mapped = flatMapErr(successResult, () => Ok('recovered'));
     assert.deepStrictEqual(mapped, successResult);
   });
 });

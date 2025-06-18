@@ -1,17 +1,18 @@
+/* eslint-disable no-console */
 import {
-  Ok,
   Err,
   Loading,
   NotAsked,
-  isOk,
+  Ok,
+  flatMapOk,
   isErr,
   isLoading,
   isNotAsked,
+  isOk,
   mapOk,
-  flatMapOk,
-  unwrapOr,
-  tryCatchSync,
   tryCatch,
+  tryCatchSync,
+  unwrapOr,
 } from '../result.js';
 
 // Basic Result creation and checking

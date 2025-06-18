@@ -22,7 +22,7 @@
  *   console.log(userResult.value.name); // "John"
  * }
  */
-export const Ok = (value) => ({ type: "ok", value });
+export const Ok = (value) => ({ type: 'ok', value });
 
 /**
  * @template E
@@ -46,7 +46,7 @@ export const Ok = (value) => ({ type: "ok", value });
  *   console.log(validationError.error.message); // "Invalid email"
  * }
  */
-export const Err = (error) => ({ type: "err", error });
+export const Err = (error) => ({ type: 'err', error });
 
 /**
  * @typedef {{ type: "loading" }} Loading
@@ -68,7 +68,7 @@ export const Err = (error) => ({ type: "err", error });
  *   return <Spinner />;
  * }
  */
-export const Loading = () => ({ type: "loading" });
+export const Loading = () => ({ type: 'loading' });
 
 /**
  * @typedef {{ type: "not-asked" }} NotAsked
@@ -90,7 +90,7 @@ export const Loading = () => ({ type: "loading" });
  *   return <button onClick={fetchUser}>Load User</button>;
  * }
  */
-export const NotAsked = () => ({ type: "not-asked" });
+export const NotAsked = () => ({ type: 'not-asked' });
 
 /**
  * @template T
@@ -438,7 +438,7 @@ export const unwrap = (result) => {
   if (isOk(result)) {
     return result.value;
   }
-  throw new Error("Tried to unwrap a non-ok result");
+  throw new Error('Tried to unwrap a non-ok result');
 };
 
 /**
@@ -507,10 +507,10 @@ export const unwrapOr = (result, defaultValue) => {
  */
 export const isOk = (value) => {
   return (
-    typeof value === "object" &&
+    typeof value === 'object' &&
     value !== null &&
-    "type" in value &&
-    value.type === "ok"
+    'type' in value &&
+    value.type === 'ok'
   );
 };
 
@@ -544,10 +544,10 @@ export const isOk = (value) => {
  */
 export const isErr = (value) => {
   return (
-    typeof value === "object" &&
+    typeof value === 'object' &&
     value !== null &&
-    "type" in value &&
-    value.type === "err"
+    'type' in value &&
+    value.type === 'err'
   );
 };
 
@@ -580,10 +580,10 @@ export const isErr = (value) => {
  */
 export const isLoading = (value) => {
   return (
-    typeof value === "object" &&
+    typeof value === 'object' &&
     value !== null &&
-    "type" in value &&
-    value.type === "loading"
+    'type' in value &&
+    value.type === 'loading'
   );
 };
 
@@ -616,10 +616,10 @@ export const isLoading = (value) => {
  */
 export const isNotAsked = (value) => {
   return (
-    typeof value === "object" &&
+    typeof value === 'object' &&
     value !== null &&
-    "type" in value &&
-    value.type === "not-asked"
+    'type' in value &&
+    value.type === 'not-asked'
   );
 };
 
