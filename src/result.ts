@@ -1512,7 +1512,7 @@ export const fromFalsy = <T, E>(value: T, error: E): Result<T, E> => {
  * Collection of all Result utilities for convenient importing.
  *
  * @example
- * import { Result } from './result.js';
+ * import { Result } from '@crvouga/result';
  *
  * const userResult = Result.Ok({ id: 1, name: "John" });
  * if (Result.isOk(userResult)) {
