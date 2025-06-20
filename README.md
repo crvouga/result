@@ -1,4 +1,4 @@
-# Result.js
+# result
 
 A comprehensive JavaScript library for handling success and error states with support for remote data patterns. Provides type-safe error handling, pattern matching, and functional programming utilities.
 
