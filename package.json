@@ -1,6 +1,6 @@
 {
   "name": "@crvouga/result",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "A comprehensive Result type library for TypeScript with Ok, Err, Loading, and NotAsked states",
   "main": "dist/cjs/result.js",
   "module": "dist/esm/result.js",
