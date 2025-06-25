@@ -2,15 +2,15 @@
   "name": "@crvouga/result",
   "version": "1.4.1",
   "description": "A comprehensive Result type library for TypeScript with Ok, Err, Loading, and NotAsked states",
-  "main": "dist/result.js",
-  "module": "dist/result.js",
-  "types": "dist/result.d.ts",
+  "main": "dist/cjs/result.js",
+  "module": "dist/esm/result.js",
+  "types": "dist/esm/result.d.ts",
   "type": "module",
   "exports": {
     ".": {
-      "types": "./dist/result.d.ts",
-      "import": "./dist/result.js",
-      "require": "./dist/result.js"
+      "types": "./dist/esm/result.d.ts",
+      "import": "./dist/esm/result.js",
+      "require": "./dist/cjs/result.js"
     },
     "./package.json": "./package.json"
   },
@@ -20,7 +20,10 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "npm run build:esm && npm run build:cjs && npm run build:post",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:post": "echo '{\"type\":\"commonjs\"}' > dist/cjs/package.json",
     "dev": "tsc --watch",
     "tc": "tsc --noEmit --watch",
     "test": "tsx --test test/*.test.ts",
