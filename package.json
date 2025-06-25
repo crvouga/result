@@ -8,8 +8,9 @@
   "type": "module",
   "exports": {
     ".": {
+      "types": "./dist/result.d.ts",
       "import": "./dist/result.js",
-      "types": "./dist/result.d.ts"
+      "require": "./dist/result.js"
     },
     "./package.json": "./package.json"
   },
