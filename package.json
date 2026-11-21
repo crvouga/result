@@ -59,12 +59,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/crvouga/result.git"
+    "url": "git+https://github.com/crvouga-organization/result.git"
   },
   "bugs": {
-    "url": "https://github.com/crvouga/result/issues"
+    "url": "https://github.com/crvouga-organization/result/issues"
   },
-  "homepage": "https://github.com/crvouga/result#readme",
+  "homepage": "https://github.com/crvouga-organization/result#readme",
   "engines": {
     "node": ">=16.0.0"
   },
